@@ -12,7 +12,7 @@ GoricEvSyn(
   SameHypo,
   NrHypos,
   Hypo_studies,
-  ComplOrUnc = 1
+  Safeguard = "unconstrained"
 )
 }
 \arguments{
@@ -22,17 +22,17 @@ In the added-evidence approach, the aggregated evidence from, says, 5 studies is
 
 \item{S}{The number of (primary) studies. That is, the results (evidence) of S studies will be aggregated.}
 
-\item{Param_studies}{List of S 'named' vectors with the (standardized) parameter estimates of interest. Thus, there are S items in the list and each item is a 'named' vector with the number of parameter estimates relevant for that study. Note: The names of the estimates should be used in the hypothesis specification.}
+\item{Param_studies}{List of S 'named' vectors with the k_s (standardized) parameter estimates of interest of Study s. Thus, there are S items in the list and each item is a 'named' vector with k_s elements: the k_s number of parameter estimates relevant for that study. In case each study has the same number of parameters (k) which denote the same (in terms of hypothesis specification), Param_studies can be an S x k 'named' matrix. Note: The names of the vectors (or the column names of the S x 'k' matrix) with estimates should be used in the hypothesis specification.}
 
-\item{CovMx_studies}{List of the S covariance matrices of the (standardized) parameter estimates of interest.}
+\item{CovMx_studies}{List of the S covariance matrices of the (standardized) parameter estimates of interest (of size k_s x k_s). In case number of parameters are the same, it can also be a S*k_s x k_s matrix. Note: The columns (and rows) do not need to be named.}
 
-\item{SameHypo}{Indicator whether the same hypotheses are used (1) or not (0). If SameHypo = 1, then the same estimates in Param_studies should have the same name.}
+\item{SameHypo}{Indicator whether the same hypotheses are used (1) or not (0) in all S studies. If SameHypo = 1, then the same estimates in Param_studies should have the same name.}
 
-\item{NrHypos}{The number of theory-based hypotheses that will be evaluated.}
+\item{NrHypos}{The number of theory-based hypotheses that will be evaluated within each study (is a scalar with an integer value).}
 
-\item{Hypo_studies}{The NrHypos theory-based hypotheses. If SameHypo = 0, then there should be S specifications of the NrHypos theory-based hypotheses.}
+\item{Hypo_studies}{A vector of strings containing the NrHypos theory-based hypotheses. If SameHypo = 0, then there should be S specifications of the NrHypos theory-based hypotheses, that is S times NrHypos strings.}
 
-\item{ComplOrUnc}{Indicator of which safeguard-hypothesis should be used in case 'NrHypos = 1': Complement (0; i.e., the remaining theories) or unconstrained (1; i.e., all possible theories including the one specified). If NrHypos > 1, then automatically the unconstrained will be used.}
+\item{Safeguard}{Indicator of which safeguard-hypothesis should be used: "unconstrained" (default; i.e., all possible theories including the one specified), "none" (only advised when set of hyptheses cover all theories), or (only when 'NrHypos = 1') "complement" (i.e., the remaining theories).}
 }
 \value{
 The output comprises, among others, the overall evidence for the theory-based hypotheses.
