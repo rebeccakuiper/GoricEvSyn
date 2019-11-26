@@ -19,14 +19,189 @@
 #' @export
 #' @examples
 #'
-#' # In progress
+#' ### Example 1: 2 ANOVA studies (Monin and Holubar) ###
+#' ### We will use the estimates of the ANOVA models
+#'
+#' est_1 <- c(1.88   2.54   0.02)
+#' names(est_1) <- c("group1", "group2", "group3")
+#' vcov_est_1 <- diag(0.2149074, 0.2149074, 0.1408014)
+#' est_2 <- c(0.98, 0.02, 0.27)
+#' names(est_2) <- c("gr1", "gr2", "gr3") # Use different names to show use of different set of hypotheses
+#' vcov_est_2 <- diag(0.1382856, 0.1024337, 0.0987754)
+#'
+#' # If number of parameters differ per study (but can also be used when they are the same): make lists
+#' #
+#' # beta values from the analyses
+#' Param_studies <- list(est_1, est_2)
+#' Param_studies
+#' #
+#' # standard error of the beta's (from the S primary studies)
+#' CovMx_studies <- list(vcov_est_1, vcov_est_2)
+#' CovMx_studies
+#'
+#' # Set of hypotheses for each study
+#' # Note: in this case we could make the names of the estimates in est_1 and est_2 the same.
+#' # In general, when not same number of parameters they names will not be the same and/or the set of hypotheses, so we use that here.
+#' SameHypo <- 0
+#' NrHypos <- 2
+#' # names(est_1) # Specify restrictions using those names
+#' H11 <- 'group1 == group2; group2 > group3'  # Note: cannot use group1 == group2 > group3
+#' H12 <- 'group2 > group1; group1 > group3'   # Note: cannot use group2 > group1 > group3
+#' # names(est_2) # Specify restrictions using those names
+#' H21 <- 'gr1 == gr2; gr2 > gr3'  # Note: cannot use gr1 == gr2 > gr3
+#' H22 <- 'gr2 > gr1; gr1 > gr3'   # Note: cannot use gr2 > gr1 > gr3
+#' Hypo_studies <- c(H11, H12, H21, H22)
+#' #
+#' # Evidence synthesis
+#' TypeEv <- 1 # Added-evidence approach
+#' GoricEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies)
+#'
+#'
+#'
+#' ### Example 2: 4 trust studies discussed in Kuiper et al. (2013) ###
+#' ### Different statistical models are used: linear regression, probit regression, and three-level logististic regression
+#'
+#' S <- 4 # Number of primary studies for which the evidence for a central theory should be determined and synthesized.
+#'
+#' # Example 1a #
+#' # If same number of parameters per study
+#' #
+#' NrParam <- 1 # In this example, each study has one parameter of interest (i.e., hypotheses below address only this parameter).
+#' # beta values from the analyses
+#' Param_studies <- matrix(c(0.09, 0.14, 1.09, 1.781), nrow = S, ncol = NrParam)
+#' colnames(Param_studies) <- "beta1" # Should have names and should have the same as in the hypotheses below
+#' Param_studies
+#' #
+#' # standard error of the beta's (from the S primary studies)
+#' CovMx_studies <- matrix(c(0.029^2, 0.054^2, 0.093^2, 0.179^2), nrow = S, ncol = NrParam) # Note: no names needed
+#' #
+#'
+#' # OR
+#'
+#' # Example 1b #
+#' # If number of parameters differ per study (but can also be used when they are the same)
+#' #
+#' # beta values from the analyses
+#' est_1 <- matrix(c(0.09), nrow = 1)
+#' colnames(est_1) <- "beta1"
+#' est_2 <- matrix(c(0.14), nrow = 1)
+#' colnames(est_2) <- "beta1"
+#' est_3 <- matrix(c(1.09), nrow = 1)
+#' colnames(est_3) <- "beta1"
+#' est_4 <- matrix(c(1.781), nrow = 1)
+#' colnames(est_4) <- "beta1"
+#' Param_studies <- list(est_1, est_2, est_3, est_4)
+#' Param_studies
+#' #
+#' # standard error of the beta's (from the S primary studies)
+#' vcov_est_1 <- matrix(c(0.029^2), nrow = 1)
+#' vcov_est_2 <- matrix(c(0.054^2), nrow = 1)
+#' vcov_est_3 <- matrix(c(0.093^2), nrow = 1)
+#' vcov_est_4 <- matrix(c(0.179^2), nrow = 1)
+#' CovMx_studies <- list(vcov_est_1, vcov_est_2, vcov_est_3, vcov_est_4)
+#' CovMx_studies
+#'
+#'
+#' # Set of hypotheses for each study
+#' # Note: in this case the same for each study
+#' SameHypo <- 1
+#' NrHypos <- 3
+#' H0 <- "beta1 == 0"
+#' Hpos <- "beta1 > 0"
+#' Hneg <- "beta1 < 0"
+#' Hypo_studies <- c(H0, Hpos, Hneg)
+#' # Since this covers the whole space / covers all theories, we do not need a safeguard-hypothesis
+#' Safeguard <- "none"
+#' #
+#' # Evidence synthesis
+#' TypeEv <- 1 # Added-evidence approach
+#' GoricEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies, Safeguard)
+#'
+#'
+#'
+#' ### Example 3: 3 'fictional' studies; for ease, all 3 use linear regression ###
+#' ### where continuous predictor variable need to be standardized and
+#' ### where we will the complement of our theory as competing hypothesis ###
+#'
+#' S <- 3
+#' ratio <- c(1,1.1,1.2)
+#'
+#' # Generate data1
+#' n1 <- 30
+#' x11 <- rnorm(n1)
+#' x12 <- rnorm(n1)
+#' x13 <- rnorm(n1)
+#' data <- cbind(x11, x12, x13)
+#' # Standardize data - since parameters for continuous variables will be compared
+#' data1 <- as.data.frame(scale(data))
+#' y1 <- ratio[1]*data1$x11 + ratio[2]*data1$x12 + ratio[3]*data1$x13 + rnorm(n1)
+#' # Note: since there is one outcome, the outcome does not need to be standardized
+#' # Fit regression model
+#' fit.lm1 <- lm(y1 ~ -1 + x11 + x12 + x13, data = data1)
+#'
+#' # Generate data2
+#' n2 <- 50
+#' x21 <- rnorm(n2)
+#' x22 <- rnorm(n2)
+#' x23 <- rnorm(n2)
+#' data <- cbind(x21, x22, x23)
+#' # Standardize data - since parameters for continuous variables will be compared
+#' data2 <- as.data.frame(scale(data))
+#' y2 <- ratio[1]*data2$x21 + ratio[2]*data2$x22 + ratio[3]*data2$x23 + rnorm(n2)
+#' # Note: since there is one outcome, the outcome does not need to be standardized
+#' # Fit regression model
+#' fit.lm2 <- lm(y2 ~ -1 + x21 + x22 + x23, data = data2)
+#'
+#' # Generate data3
+#' n3 <- 100
+#' x31 <- rnorm(n3)
+#' x32 <- rnorm(n3)
+#' x33 <- rnorm(n3)
+#' data <- cbind(x31, x32, x33)
+#' # Standardize data - since parameters for continuous variables will be compared
+#' data3 <- as.data.frame(scale(data))
+#' y3 <- ratio[1]*data3$x31 + ratio[2]*data3$x32 + ratio[3]*data3$x33 + rnorm(n3)
+#' # Note: since there is one outcome, the outcome does not need to be standardized
+#' # Fit regression model
+#' fit.lm3 <- lm(y3 ~ -1 + x31 + x32 + x33, data = data3)
+#'
+#' # Extract estimates and their covariance matrix (per study)
+#' est_1 <- coef(fit.lm1)
+#' est_2 <- coef(fit.lm2)
+#' est_3 <- coef(fit.lm3)
+#' vcov_est_1 <- vcov(fit.lm1)
+#' vcov_est_2 <- vcov(fit.lm2)
+#' vcov_est_3 <- vcov(fit.lm3)
+#' #
+#' #
+#' ## If same number and type of parameters per study (since they will obtain the same name)
+#' #
+#' NrParam <- length(est_1)
+#' # Parameter estimate values from the S primary studies
+#' Param_studies <- matrix(c(est_1, est_2, est_3), byrow = T, nrow = S, ncol = NrParam)
+#' colnames(Param_studies) <- c("x1", "x2", "x3")
+#' Param_studies
+#' # standard error of the beta's (from the S primary studies)
+#' CovMx_studies <- matrix(c(vcov_est_1, vcov_est_2, vcov_est_3), byrow = T, nrow = S*NrParam, ncol = NrParam) # Note: no names needed
+#' CovMx_studies
+#' #
+#' # Set of hypotheses for each study
+#' # Note: in this case the same for each study
+#' SameHypo <- 1
+#' # colnames(est) # Specify restrictions using those names
+#' H1 <- 'x1 < x2; x2 < x3'   # Note: cannot use x1 < x2 < x3
+#' # Since estimates of continuous variables are compared in our theory, we standardized the data before to obtain comparable estimates.
+#' NrHypos <- 1
+#' # Since we have only one theory-based hypothesis, we will use the (more powerful) complement of the hypothesis (Vanbrabant, Van Loey, Kuiper, 2019)
+#' # The complement represents the remaing 11 theories, while the unconstrained reflects all 12 possible theories including H1.
+#' Safeguard <- "complement"
+#' # Evidence synthesis
+#' TypeEv <- 1 # Added-evidence approach
+#' GoricEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies = H1, Safeguard)
 
-# TO DO denk na over hoe parameters e.d. opgeven!
+
 
 GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies, Safeguard = "unconstrained") {
-
-  # TO DO
-  # Checks op input!
 
   # Checks op input
   #
@@ -288,12 +463,16 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
   Final.rel.GORICA.weights <- Final.GORICA.weights %*% t(1/Final.GORICA.weights)
   Final.GORICA.weights <- matrix(Final.GORICA.weights, nrow = 1)
   rownames(Final.GORICA.weights) <- "Final"
+  #
   colnames(Final.GORICA) <- colnames(Final.GORICA.weights) <- c(paste0("H", 1:NrHypos_incl))
   rownames(Final.rel.GORICA.weights) <- c(paste0("H", 1:NrHypos_incl))
   colnames(Final.rel.GORICA.weights) <- c(paste0("vs H", 1:NrHypos_incl))
 
   if(NrHypos == 1 & Safeguard == "complement"){
     colnames(rel.weight_mu) <- c("H1 vs Hc1")
+    colnames(Final.GORICA) <- colnames(Final.GORICA.weights) <- c("H1", "Hc1")
+    rownames(Final.rel.GORICA.weights) <- c("H1", "Hc1")
+    colnames(Final.rel.GORICA.weights) <- c("vs H1", "vs Hc1")
     final <- list(GORICA_m = GORICA_m, GORICA.weight_m = weight_m, rel.GORICA.weight_mc = rel.weight_mu, LL_m = LL, PT_m = PT,
                   EvSyn_approach = EvSyn_approach, overallGorica = overallGorica, overallGoricaWeights = overallGoricaWeights,
                   Final.GORICA = Final.GORICA, Final.GORICA.weights = Final.GORICA.weights, Final.rel.GORICA.weights = Final.rel.GORICA.weights)
