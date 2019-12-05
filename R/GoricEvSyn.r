@@ -407,6 +407,7 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
     }
     if(CovMx_list == 0){
       cov <- CovMx_studies[(teller_k+1):(teller_k+k),]
+      teller_k <- teller_k + k
     }else{
       cov <- CovMx_studies[[s]]
     }
@@ -435,7 +436,6 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
     weight_m[s,] <- result2$result[,5]
     #
     teller <- teller + NrHypos
-    teller_k <- teller_k + k
   }
 
   sumLL <- 0
