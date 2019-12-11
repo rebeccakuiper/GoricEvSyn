@@ -13,8 +13,10 @@
 #' @param NrHypos The number of theory-based hypotheses that will be evaluated within each study (is a scalar with an integer value).
 #' @param Hypo_studies A vector of strings containing the NrHypos theory-based hypotheses. If SameHypo = 0, then there should be S specifications of the NrHypos theory-based hypotheses, that is S times NrHypos strings.
 #' @param Safeguard Indicator of which safeguard-hypothesis should be used: "unconstrained" (default; i.e., all possible theories including the one specified), "none" (only advised when set of hyptheses cover all theories), or (only when 'NrHypos = 1') "complement" (i.e., the remaining theories).
+#' @param PrintPlot Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for last study are the final ones).
+#' @param Name_studies Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.
 #'
-#' @return The output comprises, among others, the overall evidence for the theory-based hypotheses.
+#' @return The output comprises, among other things, the cumulative and final evidence for the theory-based hypotheses.
 #' @importFrom restriktor goric
 #' @export
 #' @examples
@@ -125,9 +127,10 @@
 #'
 #' S <- 3
 #' ratio <- c(1,1.1,1.2)
+#' n <- c(30, 50, 100)
 #'
 #' # Generate data1
-#' n1 <- 30
+#' n1 <- n[1]
 #' x11 <- rnorm(n1)
 #' x12 <- rnorm(n1)
 #' x13 <- rnorm(n1)
@@ -137,10 +140,10 @@
 #' y1 <- ratio[1]*data1$x11 + ratio[2]*data1$x12 + ratio[3]*data1$x13 + rnorm(n1)
 #' # Note: since there is one outcome, the outcome does not need to be standardized
 #' # Fit regression model
-#' fit.lm1 <- lm(y1 ~ -1 + x11 + x12 + x13, data = data1)
+#' fit.lm1 <- lm(y1 ~ 1 + x11 + x12 + x13, data = data1)
 #'
 #' # Generate data2
-#' n2 <- 50
+#' n2 <- n[2]
 #' x21 <- rnorm(n2)
 #' x22 <- rnorm(n2)
 #' x23 <- rnorm(n2)
@@ -150,10 +153,10 @@
 #' y2 <- ratio[1]*data2$x21 + ratio[2]*data2$x22 + ratio[3]*data2$x23 + rnorm(n2)
 #' # Note: since there is one outcome, the outcome does not need to be standardized
 #' # Fit regression model
-#' fit.lm2 <- lm(y2 ~ -1 + x21 + x22 + x23, data = data2)
+#' fit.lm2 <- lm(y2 ~ 1 + x21 + x22 + x23, data = data2)
 #'
 #' # Generate data3
-#' n3 <- 100
+#' n3 <- n[3]
 #' x31 <- rnorm(n3)
 #' x32 <- rnorm(n3)
 #' x33 <- rnorm(n3)
@@ -163,7 +166,7 @@
 #' y3 <- ratio[1]*data3$x31 + ratio[2]*data3$x32 + ratio[3]*data3$x33 + rnorm(n3)
 #' # Note: since there is one outcome, the outcome does not need to be standardized
 #' # Fit regression model
-#' fit.lm3 <- lm(y3 ~ -1 + x31 + x32 + x33, data = data3)
+#' fit.lm3 <- lm(y3 ~ 1 + x31 + x32 + x33, data = data3)
 #'
 #' # Extract estimates and their covariance matrix (per study)
 #' est_1 <- coef(fit.lm1)
@@ -179,11 +182,9 @@
 #' NrParam <- length(est_1)
 #' # Parameter estimate values from the S primary studies
 #' Param_studies <- matrix(c(est_1, est_2, est_3), byrow = T, nrow = S, ncol = NrParam)
-#' colnames(Param_studies) <- c("x1", "x2", "x3")
-#' Param_studies
+#' colnames(Param_studies) <- c("intercept", "x1", "x2", "x3")
 #' # standard error of the beta's (from the S primary studies)
 #' CovMx_studies <- matrix(c(vcov_est_1, vcov_est_2, vcov_est_3), byrow = T, nrow = S*NrParam, ncol = NrParam) # Note: no names needed
-#' CovMx_studies
 #' #
 #' # Set of hypotheses for each study
 #' # Note: in this case the same for each study
@@ -191,17 +192,24 @@
 #' # colnames(est) # Specify restrictions using those names
 #' H1 <- 'x1 < x2; x2 < x3'   # Note: cannot use x1 < x2 < x3
 #' # Since estimates of continuous variables are compared in our theory, we standardized the data before to obtain comparable estimates.
+#' # Since no restrictions on intercept, you can leave it out in 'Param_studies' and 'CovMx_studies'; this does not impact the GORIC(A) weights
 #' NrHypos <- 1
 #' # Since we have only one theory-based hypothesis, we will use the (more powerful) complement of the hypothesis (Vanbrabant, Van Loey, Kuiper, 2019)
-#' # The complement represents the remaing 11 theories, while the unconstrained reflects all 12 possible theories including H1.
+#' # The complement represents the remaining 11 theories, while the unconstrained reflects all 12 possible theories including H1.
 #' Safeguard <- "complement"
 #' # Evidence synthesis
 #' TypeEv <- 1 # Added-evidence approach
 #' GoricEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies = H1, Safeguard)
+#'
+#' # Change labels on x-axis in GORIC(A) weigths plot #
+#' # For example, let us say that the studies come from the years 2016, 2017, 2019.
+#' # Because of unequal spacing, you may want to use numbers instead of characters:
+#' Name_studies <- c(2016, 2017, 2019)
+#' GoricEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies = H1, Safeguard, Name_studies)
 
 
 
-GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies, Safeguard = "unconstrained") {
+GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies, Safeguard = "unconstrained", PrintPlot = T, Name_studies = 1:S) {
 
   # Checks op input
   #
@@ -355,6 +363,20 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
       stop()
     }
   }
+  #
+  if(PrintPlot != T & PrintPlot != F){
+    print(paste("The argument 'PrintPlot' should be TRUE or FALSE, not ", PrintPlot, "."))
+    stop()
+  }
+  if(length(Name_studies) != S){
+    print(paste("The argument 'Name_studies' should consist of S = ", S, " elements (either all numbers or all characters)."))
+    stop()
+    if(!all(is.numeric(Name_studies)) & !all(is.character(Name_studies))){
+      print(paste("The argument 'Name_studies' should consist of either S = ", S, " numbers or S = ", S, " characters."))
+      stop()
+    }
+  }
+
 
   NrHypos_incl <- NrHypos + 1
   if(Safeguard == "none"){
@@ -365,19 +387,23 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
   LL <- matrix(NA, nrow = S, ncol = NrHypos_incl)
   PT <- matrix(NA, nrow = S, ncol = NrHypos_incl)
   rownames(LL) <- rownames(PT) <- paste0("Study", 1:S)
-  overallGorica <- matrix(NA, nrow = S, ncol = NrHypos_incl)
-  overallGoricaWeights <- matrix(NA, nrow = S, ncol = NrHypos_incl)
-  rownames(overallGorica) <- rownames(overallGoricaWeights) <- paste0("Study", 1:S)
+  #CumulativeGorica <- matrix(NA, nrow = S, ncol = NrHypos_incl)
+  #CumulativeGoricaWeights <- matrix(NA, nrow = S, ncol = NrHypos_incl)
+  #rownames(CumulativeGorica) <- rownames(CumulativeGoricaWeights) <- paste0("Study", 1:S)
+  CumulativeGorica <- matrix(NA, nrow = (S+1), ncol = NrHypos_incl)
+  CumulativeGoricaWeights <- matrix(NA, nrow = (S+1), ncol = NrHypos_incl)
+  rownames(CumulativeGorica) <- rownames(CumulativeGoricaWeights) <- c(paste0("Study", 1:S), "Final")
   if(NrHypos == 1 & Safeguard == "complement"){
-    colnames(GORICA_m) <- colnames(weight_m) <- colnames(LL) <- colnames(PT) <- colnames(overallGorica) <- colnames(overallGoricaWeights) <- c("H1", "Hc1")
+    namesH <- c("H1", "Hc1")
     rel.weight_mu <- array(data=NA, dim=c(S,1))
   }else if(Safeguard == "none"){
-    colnames(GORICA_m) <- colnames(weight_m) <- colnames(LL) <- colnames(PT) <- colnames(overallGorica) <- colnames(overallGoricaWeights) <- c(paste0("H", 1:NrHypos))
+    namesH <- c(paste0("H", 1:NrHypos))
     rel.weight_mu <- array(data=NA, dim=c(S,NrHypos_incl))
   }else{
-    colnames(GORICA_m) <- colnames(weight_m) <- colnames(LL) <- colnames(PT) <- colnames(overallGorica) <- colnames(overallGoricaWeights) <- c(paste0("H", 1:NrHypos), "Hu")
+    namesH <- c(paste0("H", 1:NrHypos), "Hu")
     rel.weight_mu <- array(data=NA, dim=c(S,NrHypos_incl))
   }
+  colnames(GORICA_m) <- colnames(weight_m) <- colnames(LL) <- colnames(PT) <- colnames(CumulativeGorica) <- colnames(CumulativeGoricaWeights) <- namesH
   rownames(GORICA_m) <- rownames(rel.weight_mu) <- rownames(weight_m) <- paste0("Study", 1:S)
   #
   #
@@ -444,47 +470,110 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
     for(s in 1:S){
       sumLL <- sumLL + LL[s,]
       sumPT <- sumPT + PT[s,]
-      overallGorica[s,] <- -2 * sumLL + 2 * sumPT
-      overallGoricaWeights[s,] <- exp(-0.5*overallGorica[s,]) / sum(exp(-0.5*overallGorica[s,]))
+      CumulativeGorica[s,] <- -2 * sumLL + 2 * sumPT
+      #CumulativeGoricaWeights[s,] <- exp(-0.5*CumulativeGorica[s,]) / sum(exp(-0.5*CumulativeGorica[s,]))
+      minGoric <- min(CumulativeGorica[s,])
+      CumulativeGoricaWeights[s,] <- exp(-0.5*(CumulativeGorica[s,]-minGoric)) / sum(exp(-0.5*(CumulativeGorica[s,]-minGoric)))
     }
     EvSyn_approach <- "Added-evidence approach"
   }else{ # equal-ev approach
     for(s in 1:S){
       sumLL <- sumLL + LL[s,]
       sumPT <- sumPT + PT[s,]
-      overallGorica[s,] <- -2 * sumLL + 2 * sumPT/s
-      overallGoricaWeights[s,] <- exp(-0.5*overallGorica[s,]) / sum(exp(-0.5*overallGorica[s,]))
+      CumulativeGorica[s,] <- -2 * sumLL + 2 * sumPT/s
+      #CumulativeGoricaWeights[s,] <- exp(-0.5*CumulativeGorica[s,]) / sum(exp(-0.5*CumulativeGorica[s,]))
+      minGoric <- min(CumulativeGorica[s,])
+      CumulativeGoricaWeights[s,] <- exp(-0.5*(CumulativeGorica[s,]-minGoric)) / sum(exp(-0.5*(CumulativeGorica[s,]-minGoric)))
     }
     EvSyn_approach <- "Equal-evidence approach"
   }
 
-  Final.GORICA <- matrix(overallGorica[S,], nrow = 1)
-  Final.GORICA.weights <- overallGoricaWeights[S,]
-  Final.rel.GORICA.weights <- Final.GORICA.weights %*% t(1/Final.GORICA.weights)
-  Final.GORICA.weights <- matrix(Final.GORICA.weights, nrow = 1)
-  rownames(Final.GORICA.weights) <- "Final"
+  CumulativeGorica[(S+1),] <- CumulativeGorica[S,]
+  CumulativeGoricaWeights[(S+1),] <- CumulativeGoricaWeights[S,]
   #
-  colnames(Final.GORICA) <- colnames(Final.GORICA.weights) <- c(paste0("H", 1:NrHypos_incl))
-  rownames(Final.rel.GORICA.weights) <- c(paste0("H", 1:NrHypos_incl))
-  colnames(Final.rel.GORICA.weights) <- c(paste0("vs H", 1:NrHypos_incl))
+  #Final.GORICA <- matrix(CumulativeGorica[S,], nrow = 1)
+  Final.GORICA.weights <- CumulativeGoricaWeights[S,]
+  Final.rel.GORICA.weights <- Final.GORICA.weights %*% t(1/Final.GORICA.weights)
+  #Final.GORICA.weights <- matrix(Final.GORICA.weights, nrow = 1)
+  #rownames(Final.GORICA) <- "Final"
+  #rownames(Final.GORICA.weights) <- "Final"
 
+  #colnames(Final.GORICA) <- colnames(Final.GORICA.weights) <- c(paste0("H", 1:NrHypos_incl))
+  #rownames(Final.rel.GORICA.weights) <- c(paste0("H", 1:NrHypos_incl))
+  #colnames(Final.rel.GORICA.weights) <- c(paste0("vs H", 1:NrHypos_incl))
+
+  rownames(Final.rel.GORICA.weights) <- namesH
+  #colnames(Final.GORICA) <- colnames(Final.GORICA.weights) <- namesH
+
+
+  # Plot
+  if(PrintPlot == T){
+    Legend <- c("per study", "cumulative", namesH)
+    Pch <- c(1,NA,1,1)
+    Col <- c(1, 1, 1:NrHypos_incl)
+    Lty <- c(NA,1,1,1)
+    dev.off() # to reset the graphics pars to defaults
+    par(mar=c(par('mar')[1:3], 0)) # optional, removes extraneous right inner margin space
+    plot.new()
+    l <- legend(0, 0, bty='n', Legend,
+                plot=FALSE, pch=Pch, lty=Lty, col=Col)
+    # calculate right margin width in ndc
+    w <- grconvertX(l$rect$w, to='ndc') - grconvertX(0, to='ndc')
+    par(omd=c(0, 1-w, 0, 1))
+    #
+    teller_col <- 1
+    #plot(1:S, weight_m[,1], pch = 1, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative")
+    if(all(is.numeric(Name_studies))){
+      X <- Name_studies
+      plot(X, weight_m[,1], pch = 1, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative", xaxt="n")
+      axis(1, at=X, labels=Name_studies)
+    }else{
+      X <- 1:S
+      plot(X, weight_m[,1], pch = 1, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative", xaxt="n")
+      axis(1, at=X, labels=Name_studies)
+    }
+    for(i in 2:NrHypos_incl){
+      teller_col <- teller_col + 1
+      points(X, weight_m[,i], pch = 1, col = teller_col)
+    }
+    teller_col <- 0
+    for(i in 1:NrHypos_incl){
+      teller_col <- teller_col + 1
+      lines(X, CumulativeGoricaWeights[1:S,i], lty = 1, lwd = 1, col = teller_col)
+    }
+    #
+    legend(par('usr')[2], par('usr')[4], bty='n', xpd=NA,
+           Legend, pch=Pch, lty=Lty, col=Col)
+  }
+
+
+  # Output
   if(NrHypos == 1 & Safeguard == "complement"){
     colnames(rel.weight_mu) <- c("H1 vs Hc1")
-    colnames(Final.GORICA) <- colnames(Final.GORICA.weights) <- c("H1", "Hc1")
-    rownames(Final.rel.GORICA.weights) <- c("H1", "Hc1")
     colnames(Final.rel.GORICA.weights) <- c("vs H1", "vs Hc1")
+    #final <- list(GORICA_m = GORICA_m, GORICA.weight_m = weight_m, rel.GORICA.weight_mc = rel.weight_mu, LL_m = LL, PT_m = PT,
+    #              EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
+    #              Final.GORICA = Final.GORICA, Final.GORICA.weights = Final.GORICA.weights, Final.rel.GORICA.weights = Final.rel.GORICA.weights)
     final <- list(GORICA_m = GORICA_m, GORICA.weight_m = weight_m, rel.GORICA.weight_mc = rel.weight_mu, LL_m = LL, PT_m = PT,
-                  EvSyn_approach = EvSyn_approach, overallGorica = overallGorica, overallGoricaWeights = overallGoricaWeights,
-                  Final.GORICA = Final.GORICA, Final.GORICA.weights = Final.GORICA.weights, Final.rel.GORICA.weights = Final.rel.GORICA.weights)
+                  EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
+                  Final.rel.GORICA.weights = Final.rel.GORICA.weights)
   } else if(Safeguard == "none"){
+    colnames(Final.rel.GORICA.weights) <- c(paste0("vs H", 1:NrHypos))
+    #final <- list(GORICA_m = GORICA_m, GORICA.weight_m = weight_m, LL_m = LL, PT_m = PT,
+    #              EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
+    #              Final.GORICA = Final.GORICA, Final.GORICA.weights = Final.GORICA.weights, Final.rel.GORICA.weights = Final.rel.GORICA.weights)
     final <- list(GORICA_m = GORICA_m, GORICA.weight_m = weight_m, LL_m = LL, PT_m = PT,
-                  EvSyn_approach = EvSyn_approach, overallGorica = overallGorica, overallGoricaWeights = overallGoricaWeights,
-                  Final.GORICA = Final.GORICA, Final.GORICA.weights = Final.GORICA.weights, Final.rel.GORICA.weights = Final.rel.GORICA.weights)
+                  EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
+                  Final.rel.GORICA.weights = Final.rel.GORICA.weights)
   }else{ # unc
     colnames(rel.weight_mu) <- c(paste0("H", 1:NrHypos, " vs Unc."), "Unc. vs Unc.")
+    colnames(Final.rel.GORICA.weights) <- c(paste0("vs H", 1:NrHypos), "vs Hu")
+    #final <- list(GORICA_m = GORICA_m, GORICA.weight_m = weight_m, rel.GORICA.weight_mu = rel.weight_mu, LL_m = LL, PT_m = PT,
+    #              EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
+    #              Final.GORICA = Final.GORICA, Final.GORICA.weights = Final.GORICA.weights, Final.rel.GORICA.weights = Final.rel.GORICA.weights)
     final <- list(GORICA_m = GORICA_m, GORICA.weight_m = weight_m, rel.GORICA.weight_mu = rel.weight_mu, LL_m = LL, PT_m = PT,
-                  EvSyn_approach = EvSyn_approach, overallGorica = overallGorica, overallGoricaWeights = overallGoricaWeights,
-                  Final.GORICA = Final.GORICA, Final.GORICA.weights = Final.GORICA.weights, Final.rel.GORICA.weights = Final.rel.GORICA.weights)
+                  EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
+                  Final.rel.GORICA.weights = Final.rel.GORICA.weights)
   }
   return(final)
 

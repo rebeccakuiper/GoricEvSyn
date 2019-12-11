@@ -4,7 +4,7 @@
 \alias{GoricEvSyn_LLandPT}
 \title{GORIC(A) evidence synthesis based on log likelihood and penalty values}
 \usage{
-GoricEvSyn_LLandPT(TypeEv, S, LL, PT)
+GoricEvSyn_LLandPT(TypeEv, S, LL, PT, PrintPlot = T, Name_studies = 1:S)
 }
 \arguments{
 \item{TypeEv}{The type of evidence-synthesis approach: Equal-evidence approach (0) or Added-evidence approach (1).
@@ -16,9 +16,13 @@ In the added-evidence approach, the aggregated evidence from, says, 5 studies is
 \item{LL}{A matrix with log likelihood values of size S x 'NrHypos+1', where 'NrHypos+1' stands for the number of theory-based hypotheses plus a safeguard hypothesis (the complement or unconstrained).}
 
 \item{PT}{A matrix with penalty values of size S x 'NrHypos+1', where 'NrHypos+1' stands for the number of theory-based hypotheses plus a safeguard hypothesis (the complement or unconstrained).}
+
+\item{PrintPlot}{Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for last study are the final ones).}
+
+\item{Name_studies}{Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.}
 }
 \value{
-The output comprises, among others, the overall evidence for the theory-based hypotheses.
+The output comprises, among other things, the cumulative and final evidence for the theory-based hypotheses.
 }
 \description{
 GORIC(A) evidence synthesis (GoricEvSyn) aggregates the evidence for theory-based hypotheses from multiple studies that may use diverse designs to investigate the same central theory. There is also an interactive web application on my website to perform GoricEvSyn: \url{https://www.uu.nl/staff/RMKuiper/Websites\%20\%2F\%20Shiny\%20apps}.
@@ -41,4 +45,10 @@ GoricEvSyn_LLandPT(TypeEv, S, LL, PT)
 # Equal-evidence approach
 TypeEv <- 0
 GoricEvSyn_LLandPT(TypeEv, S, LL, PT)
+
+# Change labels on x-axis in GORIC(A) weigths plot #
+# For example, let us say that the studies come from the years 2015, 2016, 2017, 2019.
+# Because of unequal spacing, you may want to use numbers instead of characters:
+Name_studies <- c(2015, 2016, 2017, 2019)
+GoricEvSyn_LLandPT(TypeEv, S, LL, PT, Name_studies)
 }

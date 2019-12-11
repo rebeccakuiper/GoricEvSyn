@@ -12,7 +12,9 @@ GoricEvSyn(
   SameHypo,
   NrHypos,
   Hypo_studies,
-  Safeguard = "unconstrained"
+  Safeguard = "unconstrained",
+  PrintPlot = T,
+  Name_studies = 1:S
 )
 }
 \arguments{
@@ -33,9 +35,13 @@ In the added-evidence approach, the aggregated evidence from, says, 5 studies is
 \item{Hypo_studies}{A vector of strings containing the NrHypos theory-based hypotheses. If SameHypo = 0, then there should be S specifications of the NrHypos theory-based hypotheses, that is S times NrHypos strings.}
 
 \item{Safeguard}{Indicator of which safeguard-hypothesis should be used: "unconstrained" (default; i.e., all possible theories including the one specified), "none" (only advised when set of hyptheses cover all theories), or (only when 'NrHypos = 1') "complement" (i.e., the remaining theories).}
+
+\item{PrintPlot}{Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for last study are the final ones).}
+
+\item{Name_studies}{Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.}
 }
 \value{
-The output comprises, among others, the overall evidence for the theory-based hypotheses.
+The output comprises, among other things, the cumulative and final evidence for the theory-based hypotheses.
 }
 \description{
 GORIC(A) evidence synthesis (GoricEvSyn) aggregates the evidence for theory-based hypotheses from multiple studies that may use diverse designs to investigate the same central theory. There is also an interactive web application on my website to perform GoricEvSyn: \url{https://www.uu.nl/staff/RMKuiper/Websites\%20\%2F\%20Shiny\%20apps}.
@@ -148,9 +154,10 @@ GoricEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_stud
 
 S <- 3
 ratio <- c(1,1.1,1.2)
+n <- c(30, 50, 100)
 
 # Generate data1
-n1 <- 30
+n1 <- n[1]
 x11 <- rnorm(n1)
 x12 <- rnorm(n1)
 x13 <- rnorm(n1)
@@ -160,10 +167,10 @@ data1 <- as.data.frame(scale(data))
 y1 <- ratio[1]*data1$x11 + ratio[2]*data1$x12 + ratio[3]*data1$x13 + rnorm(n1)
 # Note: since there is one outcome, the outcome does not need to be standardized
 # Fit regression model
-fit.lm1 <- lm(y1 ~ -1 + x11 + x12 + x13, data = data1)
+fit.lm1 <- lm(y1 ~ 1 + x11 + x12 + x13, data = data1)
 
 # Generate data2
-n2 <- 50
+n2 <- n[2]
 x21 <- rnorm(n2)
 x22 <- rnorm(n2)
 x23 <- rnorm(n2)
@@ -173,10 +180,10 @@ data2 <- as.data.frame(scale(data))
 y2 <- ratio[1]*data2$x21 + ratio[2]*data2$x22 + ratio[3]*data2$x23 + rnorm(n2)
 # Note: since there is one outcome, the outcome does not need to be standardized
 # Fit regression model
-fit.lm2 <- lm(y2 ~ -1 + x21 + x22 + x23, data = data2)
+fit.lm2 <- lm(y2 ~ 1 + x21 + x22 + x23, data = data2)
 
 # Generate data3
-n3 <- 100
+n3 <- n[3]
 x31 <- rnorm(n3)
 x32 <- rnorm(n3)
 x33 <- rnorm(n3)
@@ -186,7 +193,7 @@ data3 <- as.data.frame(scale(data))
 y3 <- ratio[1]*data3$x31 + ratio[2]*data3$x32 + ratio[3]*data3$x33 + rnorm(n3)
 # Note: since there is one outcome, the outcome does not need to be standardized
 # Fit regression model
-fit.lm3 <- lm(y3 ~ -1 + x31 + x32 + x33, data = data3)
+fit.lm3 <- lm(y3 ~ 1 + x31 + x32 + x33, data = data3)
 
 # Extract estimates and their covariance matrix (per study)
 est_1 <- coef(fit.lm1)
@@ -202,11 +209,9 @@ vcov_est_3 <- vcov(fit.lm3)
 NrParam <- length(est_1)
 # Parameter estimate values from the S primary studies
 Param_studies <- matrix(c(est_1, est_2, est_3), byrow = T, nrow = S, ncol = NrParam)
-colnames(Param_studies) <- c("x1", "x2", "x3")
-Param_studies
+colnames(Param_studies) <- c("intercept", "x1", "x2", "x3")
 # standard error of the beta's (from the S primary studies)
 CovMx_studies <- matrix(c(vcov_est_1, vcov_est_2, vcov_est_3), byrow = T, nrow = S*NrParam, ncol = NrParam) # Note: no names needed
-CovMx_studies
 #
 # Set of hypotheses for each study
 # Note: in this case the same for each study
@@ -214,11 +219,18 @@ SameHypo <- 1
 # colnames(est) # Specify restrictions using those names
 H1 <- 'x1 < x2; x2 < x3'   # Note: cannot use x1 < x2 < x3
 # Since estimates of continuous variables are compared in our theory, we standardized the data before to obtain comparable estimates.
+# Since no restrictions on intercept, you can leave it out in 'Param_studies' and 'CovMx_studies'; this does not impact the GORIC(A) weights
 NrHypos <- 1
 # Since we have only one theory-based hypothesis, we will use the (more powerful) complement of the hypothesis (Vanbrabant, Van Loey, Kuiper, 2019)
-# The complement represents the remaing 11 theories, while the unconstrained reflects all 12 possible theories including H1.
+# The complement represents the remaining 11 theories, while the unconstrained reflects all 12 possible theories including H1.
 Safeguard <- "complement"
 # Evidence synthesis
 TypeEv <- 1 # Added-evidence approach
 GoricEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies = H1, Safeguard)
+
+# Change labels on x-axis in GORIC(A) weigths plot #
+# For example, let us say that the studies come from the years 2016, 2017, 2019.
+# Because of unequal spacing, you may want to use numbers instead of characters:
+Name_studies <- c(2016, 2017, 2019)
+GoricEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies = H1, Safeguard, Name_studies)
 }
