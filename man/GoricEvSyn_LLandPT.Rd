@@ -4,7 +4,7 @@
 \alias{GoricEvSyn_LLandPT}
 \title{GORIC(A) evidence synthesis based on log likelihood and penalty values}
 \usage{
-GoricEvSyn_LLandPT(TypeEv, S, LL, PT, PrintPlot = T, Name_studies = 1:S)
+GoricEvSyn_LLandPT(TypeEv, S, LL, PT, Name_studies = 1:S, PrintPlot = T)
 }
 \arguments{
 \item{TypeEv}{The type of evidence-synthesis approach: Equal-evidence approach (0) or Added-evidence approach (1).
@@ -17,9 +17,9 @@ In the added-evidence approach, the aggregated evidence from, says, 5 studies is
 
 \item{PT}{A matrix with penalty values of size S x 'NrHypos+1', where 'NrHypos+1' stands for the number of theory-based hypotheses plus a safeguard hypothesis (the complement or unconstrained).}
 
-\item{PrintPlot}{Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for last study are the final ones).}
-
 \item{Name_studies}{Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.}
+
+\item{PrintPlot}{Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for last study are the final ones).}
 }
 \value{
 The output comprises, among other things, the cumulative and final evidence for the theory-based hypotheses.
@@ -31,7 +31,7 @@ GORIC(A) evidence synthesis (GoricEvSyn) aggregates the evidence for theory-base
 
 S <- 4
 # Example based on S = 4 studies and 3 hypotheses:
-# H0 <- "beta1 == 0"
+# H0 <- "beta1 == 0"  # this hypothesis could have been left out
 # Hpos <- "beta1 > 0"
 # Hneg <- "beta1 < 0"
 # Note that in this set the whole space is (all theories are) covered so the unconstrained is not needed as safeguard-hypothesis

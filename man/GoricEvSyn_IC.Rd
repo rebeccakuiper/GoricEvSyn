@@ -4,16 +4,16 @@
 \alias{GoricEvSyn_IC}
 \title{GORIC(A) evidence synthesis based on AIC or ORIC or GORIC or GORICA values}
 \usage{
-GoricEvSyn_IC(S, IC, PrintPlot = T, Name_studies = 1:S)
+GoricEvSyn_IC(S, IC, Name_studies = 1:S, PrintPlot = T)
 }
 \arguments{
 \item{S}{The number of (primary) studies. That is, the results (evidence) of S studies will be aggregated.}
 
 \item{IC}{A matrix with information criteria (AIC, ORIC, GORIC, or GORICA) values of size S x 'NrHypos+1', where 'NrHypos+1' stands for the number of theory-based hypotheses plus a safeguard hypothesis (the complement or unconstrained).}
 
-\item{PrintPlot}{Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for last study are the final ones).}
+\item{Name_studies}{Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.}
 
-\item{Name_studies}{Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.
+\item{PrintPlot}{Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for last study are the final ones).
 #'}
 }
 \value{
@@ -27,7 +27,7 @@ In case IC values are used as input, the added-evidence approach is used in whic
 
 S <- 4
 IC <- myGORICs # Example based on S = 4 studies and 3 hypotheses:
-# H0 <- "beta1 == 0"
+# H0 <- "beta1 == 0"  # this hypothesis could have been left out
 # Hpos <- "beta1 > 0"
 # Hneg <- "beta1 < 0"
 # Note that in this set the whole space is (all theories are) covered so the unconstrained is not needed as safeguard-hypothesis
