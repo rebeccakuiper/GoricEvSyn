@@ -105,7 +105,7 @@ GoricEvSyn_IC <- function(S, IC, Name_studies = 1:S, PrintPlot = T) {
   # Plot
   if(PrintPlot == T){
     Legend <- c("per study", "cumulative", c(paste0("H", 1:(NrHypos + 1))))
-    Pch <- c(1, NA, rep(1,(NrHypos + 1)))
+    Pch <- c(16, 8, rep(NA, (NrHypos + 1)))
     Col <- c(1, 1, 1:(NrHypos + 1))
     Lty <- c(NA, 1, rep(1,(NrHypos + 1)))
     dev.off() # to reset the graphics pars to defaults
@@ -118,23 +118,24 @@ GoricEvSyn_IC <- function(S, IC, Name_studies = 1:S, PrintPlot = T) {
     par(omd=c(0, 1-w, 0, 1))
     #
     teller_col <- 1
-    #plot(1:S, weight_m[,1], pch = 1, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative")
+    #plot(1:S, weight_m[,1], pch = 16, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative")
     if(all(is.numeric(Name_studies))){
       X <- Name_studies
-      plot(X, weight_m[,1], pch = 1, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative", xaxt="n")
+      plot(X, weight_m[,1], pch = 16, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative", xaxt="n")
       axis(1, at=X, labels=Name_studies)
     }else{
       X <- 1:S
-      plot(X, weight_m[,1], pch = 1, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative", xaxt="n")
+      plot(X, weight_m[,1], pch = 16, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative", xaxt="n")
       axis(1, at=X, labels=Name_studies)
     }
     for(i in 2:NrHypos_incl){
       teller_col <- teller_col + 1
-      points(X, weight_m[,i], pch = 1, col = teller_col)
+      points(X, weight_m[,i], pch = 16, col = teller_col)
     }
     teller_col <- 0
     for(i in 1:NrHypos_incl){
       teller_col <- teller_col + 1
+      points(X, CumulativeGoricaWeights[1:S,i], pch = 8, col = teller_col)
       lines(X, CumulativeGoricaWeights[1:S,i], lty = 1, lwd = 1, col = teller_col)
     }
     #
