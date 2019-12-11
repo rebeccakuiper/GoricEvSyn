@@ -104,10 +104,11 @@ GoricEvSyn_IC <- function(S, IC, Name_studies = 1:S, PrintPlot = T) {
 
   # Plot
   if(PrintPlot == T){
+    NrHypos_incl <- (NrHypos + 1)
     Legend <- c("per study", "cumulative", c(paste0("H", 1:(NrHypos + 1))))
-    Pch <- c(16, 8, rep(NA, (NrHypos + 1)))
-    Col <- c(1, 1, 1:(NrHypos + 1))
-    Lty <- c(NA, 1, rep(1,(NrHypos + 1)))
+    Pch <- c(16, 8, rep(NA, NrHypos_incl))
+    Col <- c(1, 1, 1:NrHypos_incl)
+    Lty <- c(NA, 1, rep(1,NrHypos_incl))
     dev.off() # to reset the graphics pars to defaults
     par(mar=c(par('mar')[1:3], 0)) # optional, removes extraneous right inner margin space
     plot.new()
