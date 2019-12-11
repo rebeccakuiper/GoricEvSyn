@@ -13,8 +13,8 @@
 #' @param NrHypos The number of theory-based hypotheses that will be evaluated within each study (is a scalar with an integer value).
 #' @param Hypo_studies A vector of strings containing the NrHypos theory-based hypotheses. If SameHypo = 0, then there should be S specifications of the NrHypos theory-based hypotheses, that is S times NrHypos strings.
 #' @param Safeguard Indicator of which safeguard-hypothesis should be used: "unconstrained" (default; i.e., all possible theories including the one specified), "none" (only advised when set of hyptheses cover all theories), or (only when 'NrHypos = 1') "complement" (i.e., the remaining theories).
-#' @param PrintPlot Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for last study are the final ones).
 #' @param Name_studies Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.
+#' @param PrintPlot Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for last study are the final ones).
 #'
 #' @return The output comprises, among other things, the cumulative and final evidence for the theory-based hypotheses.
 #' @importFrom restriktor goric
@@ -24,22 +24,21 @@
 #' ### Example 1: 2 ANOVA studies (Monin and Holubar) ###
 #' ### We will use the estimates of the ANOVA models
 #'
-#' est_1 <- c(1.88   2.54   0.02)
+#' S <- 2
+#' est_1 <- c(1.88, 2.54, 0.02)
 #' names(est_1) <- c("group1", "group2", "group3")
-#' vcov_est_1 <- diag(0.2149074, 0.2149074, 0.1408014)
+#' vcov_est_1 <- diag(c(0.2149074, 0.2149074, 0.1408014))
 #' est_2 <- c(0.98, 0.02, 0.27)
 #' names(est_2) <- c("gr1", "gr2", "gr3") # Use different names to show use of different set of hypotheses
-#' vcov_est_2 <- diag(0.1382856, 0.1024337, 0.0987754)
+#' vcov_est_2 <- diag(c(0.1382856, 0.1024337, 0.0987754))
 #'
 #' # If number of parameters differ per study (but can also be used when they are the same): make lists
 #' #
 #' # beta values from the analyses
 #' Param_studies <- list(est_1, est_2)
-#' Param_studies
 #' #
 #' # standard error of the beta's (from the S primary studies)
 #' CovMx_studies <- list(vcov_est_1, vcov_est_2)
-#' CovMx_studies
 #'
 #' # Set of hypotheses for each study
 #' # Note: in this case we could make the names of the estimates in est_1 and est_2 the same.
@@ -72,7 +71,6 @@
 #' # beta values from the analyses
 #' Param_studies <- matrix(c(0.09, 0.14, 1.09, 1.781), nrow = S, ncol = NrParam)
 #' colnames(Param_studies) <- "beta1" # Should have names and should have the same as in the hypotheses below
-#' Param_studies
 #' #
 #' # standard error of the beta's (from the S primary studies)
 #' CovMx_studies <- matrix(c(0.029^2, 0.054^2, 0.093^2, 0.179^2), nrow = S, ncol = NrParam) # Note: no names needed
@@ -93,7 +91,6 @@
 #' est_4 <- matrix(c(1.781), nrow = 1)
 #' colnames(est_4) <- "beta1"
 #' Param_studies <- list(est_1, est_2, est_3, est_4)
-#' Param_studies
 #' #
 #' # standard error of the beta's (from the S primary studies)
 #' vcov_est_1 <- matrix(c(0.029^2), nrow = 1)
@@ -101,8 +98,6 @@
 #' vcov_est_3 <- matrix(c(0.093^2), nrow = 1)
 #' vcov_est_4 <- matrix(c(0.179^2), nrow = 1)
 #' CovMx_studies <- list(vcov_est_1, vcov_est_2, vcov_est_3, vcov_est_4)
-#' CovMx_studies
-#'
 #'
 #' # Set of hypotheses for each study
 #' # Note: in this case the same for each study
@@ -176,16 +171,14 @@
 #' vcov_est_2 <- vcov(fit.lm2)
 #' vcov_est_3 <- vcov(fit.lm3)
 #' #
-#' #
 #' ## If same number and type of parameters per study (since they will obtain the same name)
-#' #
 #' NrParam <- length(est_1)
 #' # Parameter estimate values from the S primary studies
 #' Param_studies <- matrix(c(est_1, est_2, est_3), byrow = T, nrow = S, ncol = NrParam)
 #' colnames(Param_studies) <- c("intercept", "x1", "x2", "x3")
 #' # standard error of the beta's (from the S primary studies)
 #' CovMx_studies <- matrix(c(vcov_est_1, vcov_est_2, vcov_est_3), byrow = T, nrow = S*NrParam, ncol = NrParam) # Note: no names needed
-#' #
+#'
 #' # Set of hypotheses for each study
 #' # Note: in this case the same for each study
 #' SameHypo <- 1
@@ -197,6 +190,7 @@
 #' # Since we have only one theory-based hypothesis, we will use the (more powerful) complement of the hypothesis (Vanbrabant, Van Loey, Kuiper, 2019)
 #' # The complement represents the remaining 11 theories, while the unconstrained reflects all 12 possible theories including H1.
 #' Safeguard <- "complement"
+#' #
 #' # Evidence synthesis
 #' TypeEv <- 1 # Added-evidence approach
 #' GoricEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies = H1, Safeguard)
@@ -208,10 +202,9 @@
 #' GoricEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies = H1, Safeguard, Name_studies)
 
 
+GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies, Safeguard = "unconstrained", Name_studies = 1:S, PrintPlot = T) {
 
-GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies, Safeguard = "unconstrained", PrintPlot = T, Name_studies = 1:S) {
-
-  # Checks op input
+  # Checks on input
   #
   if(length(TypeEv) != 1){
     print(paste("The type of evidence-synthesis approach (TypeEv) should be a scalar; more specifically, it should be 0 or 1."))
@@ -509,9 +502,9 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
   # Plot
   if(PrintPlot == T){
     Legend <- c("per study", "cumulative", namesH)
-    Pch <- c(1,NA,1,1)
+    Pch <- c(1, NA, rep(1,NrHypos_incl))
     Col <- c(1, 1, 1:NrHypos_incl)
-    Lty <- c(NA,1,1,1)
+    Lty <- c(NA, 1, rep(1,NrHypos_incl))
     dev.off() # to reset the graphics pars to defaults
     par(mar=c(par('mar')[1:3], 0)) # optional, removes extraneous right inner margin space
     plot.new()

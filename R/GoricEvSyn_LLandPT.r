@@ -9,8 +9,8 @@
 #' @param S The number of (primary) studies. That is, the results (evidence) of S studies will be aggregated.
 #' @param LL A matrix with log likelihood values of size S x 'NrHypos+1', where 'NrHypos+1' stands for the number of theory-based hypotheses plus a safeguard hypothesis (the complement or unconstrained).
 #' @param PT A matrix with penalty values of size S x 'NrHypos+1', where 'NrHypos+1' stands for the number of theory-based hypotheses plus a safeguard hypothesis (the complement or unconstrained).
-#' @param PrintPlot Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for last study are the final ones).
 #' @param Name_studies Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.
+#' @param PrintPlot Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for last study are the final ones).
 #'
 #' @return The output comprises, among other things, the cumulative and final evidence for the theory-based hypotheses.
 #' @export
@@ -18,7 +18,7 @@
 #'
 #' S <- 4
 #' # Example based on S = 4 studies and 3 hypotheses:
-#' # H0 <- "beta1 == 0"
+#' # H0 <- "beta1 == 0"  # this hypothesis could have been left out
 #' # Hpos <- "beta1 > 0"
 #' # Hneg <- "beta1 < 0"
 #' # Note that in this set the whole space is (all theories are) covered so the unconstrained is not needed as safeguard-hypothesis
@@ -40,9 +40,9 @@
 #' GoricEvSyn_LLandPT(TypeEv, S, LL, PT, Name_studies)
 
 
-GoricEvSyn_LLandPT <- function(TypeEv, S, LL, PT, PrintPlot = T, Name_studies = 1:S) {
+GoricEvSyn_LLandPT <- function(TypeEv, S, LL, PT, Name_studies = 1:S, PrintPlot = T) {
 
-  # Checks op input
+  # Checks on input
   #
   if(length(TypeEv) != 1){
     print(paste("The type of evidence-synthesis approach (TypeEv) should be a scalar; more specifically, it should be 0 or 1."))
@@ -99,20 +99,26 @@ GoricEvSyn_LLandPT <- function(TypeEv, S, LL, PT, PrintPlot = T, Name_studies = 
   }
 
 
+  weight_m <- matrix(NA, nrow = S, ncol = (NrHypos + 1))
   #CumulativeGorica <- matrix(NA, nrow = S, ncol = (NrHypos + 1))
   #CumulativeGoricaWeights <- matrix(NA, nrow = S, ncol = (NrHypos + 1))
   #colnames(CumulativeGorica) <- colnames(CumulativeGoricaWeights) <- colnames(LL) <- colnames(PT) <- paste0("H", 1:(NrHypos + 1))
   #rownames(CumulativeGorica) <- rownames(CumulativeGoricaWeights) <- rownames(LL) <- rownames(PT) <- paste0("Study", 1:S)
   CumulativeGorica <- matrix(NA, nrow = (S+1), ncol = (NrHypos + 1))
   CumulativeGoricaWeights <- matrix(NA, nrow = (S+1), ncol = (NrHypos + 1))
-  colnames(CumulativeGorica) <- colnames(CumulativeGoricaWeights) <- colnames(LL) <- colnames(PT) <- paste0("H", 1:(NrHypos + 1))
-  rownames(CumulativeGorica) <- rownames(CumulativeGoricaWeights) <- rownames(LL) <- rownames(PT) <- c(paste0("Study", 1:S), "Final")
+  colnames(CumulativeGorica) <- colnames(CumulativeGoricaWeights) <- colnames(LL) <- colnames(PT) <- colnames(weight_m) <- paste0("H", 1:(NrHypos + 1))
+  rownames(CumulativeGorica) <- rownames(CumulativeGoricaWeights) <- c(paste0("Study", 1:S), "Final")
+  rownames(LL) <- rownames(PT) <- rownames(weight_m) <- paste0("Study", 1:S)
 
 
   sumLL <- 0
   sumPT <- 0
+  IC <- -2 * LL + 2 * PT
   if(TypeEv == 1){ # added-ev approach
     for(s in 1:S){
+      minIC <- min(IC[s,])
+      weight_m[s,] <- exp(-0.5*(IC[s,]-minIC)) / sum(exp(-0.5*(IC[s,]-minIC)))
+      #
       sumLL <- sumLL + LL[s,]
       sumPT <- sumPT + PT[s,]
       CumulativeGorica[s,] <- -2 * sumLL + 2 * sumPT
@@ -149,9 +155,9 @@ GoricEvSyn_LLandPT <- function(TypeEv, S, LL, PT, PrintPlot = T, Name_studies = 
   # Plot
   if(PrintPlot == T){
     Legend <- c("per study", "cumulative", c(paste0("H", 1:(NrHypos + 1))))
-    Pch <- c(1,NA,1,1)
-    Col <- c(1, 1, 1:NrHypos_incl)
-    Lty <- c(NA,1,1,1)
+    Pch <- c(1, NA, rep(1,(NrHypos + 1)))
+    Col <- c(1, 1, 1:(NrHypos + 1))
+    Lty <- c(NA, 1, rep(1,(NrHypos + 1)))
     dev.off() # to reset the graphics pars to defaults
     par(mar=c(par('mar')[1:3], 0)) # optional, removes extraneous right inner margin space
     plot.new()
@@ -188,10 +194,10 @@ GoricEvSyn_LLandPT <- function(TypeEv, S, LL, PT, PrintPlot = T, Name_studies = 
 
 
   # Ouput
-  #final <- list(LL_m = LL, PT_m = PT,
+  #final <- list(LL_m = LL, PT_m = PT, GORICA_m = IC, GORICA.weight_m = weight_m,
   #              EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
   #              Final.GORICA = Final.GORICA, Final.GORICA.weights = Final.GORICA.weights, Final.rel.GORICA.weights = Final.rel.GORICA.weights)
-  final <- list(LL_m = LL, PT_m = PT,
+  final <- list(LL_m = LL, PT_m = PT, GORICA_m = IC, GORICA.weight_m = weight_m,
                   EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
                   Final.rel.GORICA.weights = Final.rel.GORICA.weights)
   return(final)
