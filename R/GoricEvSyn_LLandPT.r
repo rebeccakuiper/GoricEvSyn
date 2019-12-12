@@ -173,7 +173,7 @@ GoricEvSyn_LLandPT <- function(TypeEv, S, LL, PT, Name_studies = 1:S, Name_Hypo 
     Pch <- c(16, 8, rep(NA, NrHypos_incl))
     Col <- c(1, 1, 1:NrHypos_incl)
     Lty <- c(NA, 1, rep(1,NrHypos_incl))
-    dev.off() # to reset the graphics pars to defaults
+    while (!is.null(dev.list()))  dev.off() # to reset the graphics pars to defaults
     par(mar=c(par('mar')[1:3], 0)) # optional, removes extraneous right inner margin space
     plot.new()
     l <- legend(0, 0, bty='n', Legend,
