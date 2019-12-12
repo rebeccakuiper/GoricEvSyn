@@ -4,17 +4,18 @@
 \alias{GoricEvSyn_IC}
 \title{GORIC(A) evidence synthesis based on AIC or ORIC or GORIC or GORICA values}
 \usage{
-GoricEvSyn_IC(S, IC, Name_studies = 1:S, PrintPlot = T)
+GoricEvSyn_IC(S, IC, Name_studies = 1:S, Name_Hypo = NULL, PrintPlot = T)
 }
 \arguments{
 \item{S}{The number of (primary) studies. That is, the results (evidence) of S studies will be aggregated.}
 
-\item{IC}{A matrix with information criteria (AIC, ORIC, GORIC, or GORICA) values of size S x 'NrHypos+1', where 'NrHypos+1' stands for the number of theory-based hypotheses plus a safeguard hypothesis (the complement or unconstrained).}
+\item{IC}{A matrix with information criteria (AIC, ORIC, GORIC, or GORICA) values of size S x 'NrHypos+1', where 'NrHypos+1' stands for the number of theory-based hypotheses plus a safeguard hypothesis (the complement or unconstrained). Notably, only when the set of hypotheses cover the whol space / all theories (e.g., positive versus negative effect), then you can do without a safeguard hypothesis.}
 
-\item{Name_studies}{Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.}
+\item{Name_studies}{Optional. Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.}
 
-\item{PrintPlot}{Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for last study are the final ones).
-#'}
+\item{Name_Hypo}{Optional. Vector containing 'NrHypos+1' characters which will be used for labelling the hypothesis. Default: H1, H2, ....}
+
+\item{PrintPlot}{Optional. Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for the last study are the final ones).}
 }
 \value{
 The output comprises, among other things, the cumulative and final evidence for the theory-based hypotheses.
@@ -33,9 +34,10 @@ IC <- myGORICs # Example based on S = 4 studies and 3 hypotheses:
 # Note that in this set the whole space is (all theories are) covered so the unconstrained is not needed as safeguard-hypothesis
 GoricEvSyn_IC(S, IC)
 
-# Change labels on x-axis in GORIC(A) weigths plot #
+# Change labels on x-axis in GORIC(A) weigths plot and give names to hypotheses #
 # For example, let us say that the studies come from the years 2015, 2016, 2017, 2019.
 # Because of unequal spacing, you may want to use numbers instead of characters:
 Name_studies <- c(2015, 2016, 2017, 2019)
-GoricEvSyn_IC(S, IC, Name_studies)
+Name_Hypo <- c("H0", "Hpos", "Hneg")
+GoricEvSyn_IC(S, IC, Name_studies, Name_Hypo)
 }

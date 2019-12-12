@@ -3,4 +3,6 @@
 export(GoricEvSyn)
 export(GoricEvSyn_IC)
 export(GoricEvSyn_LLandPT)
+export(GoricEvSyn_weights)
+export(IC.weights)
 importFrom(restriktor,goric)

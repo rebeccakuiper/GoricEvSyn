@@ -7,10 +7,11 @@
 #' In case of an equal-evidence approach, aggregating evidence from, say, 5 studies with n=100 observations is the same as obtaining evidence from 1 study (as if it was possible) with n=500 observations (like meta-analysis does).
 #' In the added-evidence approach, the aggregated evidence from, says, 5 studies is stronger than as if the data were combined (as if that was possible).
 #' @param S The number of (primary) studies. That is, the results (evidence) of S studies will be aggregated.
-#' @param LL A matrix with log likelihood values of size S x 'NrHypos+1', where 'NrHypos+1' stands for the number of theory-based hypotheses plus a safeguard hypothesis (the complement or unconstrained).
-#' @param PT A matrix with penalty values of size S x 'NrHypos+1', where 'NrHypos+1' stands for the number of theory-based hypotheses plus a safeguard hypothesis (the complement or unconstrained).
-#' @param Name_studies Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.
-#' @param PrintPlot Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for last study are the final ones).
+#' @param LL A matrix with log likelihood values of size S x 'NrHypos+1', where 'NrHypos+1' stands for the number of theory-based hypotheses plus a safeguard hypothesis (the complement or unconstrained). Notably, only when the set of hypotheses cover the whol space / all theories (e.g., positive versus negative effect), then you can do without a safeguard hypothesis.
+#' @param PT A matrix with penalty values of size S x 'NrHypos+1', where 'NrHypos+1' stands for the number of theory-based hypotheses plus a safeguard hypothesis (the complement or unconstrained). Notably, only when the set of hypotheses cover the whol space / all theories (e.g., positive versus negative effect), then you can do without a safeguard hypothesis.
+#' @param Name_studies Optional. Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.
+#' @param Name_Hypo Optional. Vector containing 'NrHypos+1' characters which will be used for labelling the hypothesis. Default: H1, H2, ....
+#' @param PrintPlot Optional. Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for the last study are the final ones).
 #'
 #' @return The output comprises, among other things, the cumulative and final evidence for the theory-based hypotheses.
 #' @export
@@ -33,14 +34,15 @@
 #' TypeEv <- 0
 #' GoricEvSyn_LLandPT(TypeEv, S, LL, PT)
 #'
-#' # Change labels on x-axis in GORIC(A) weigths plot #
+#' # Change labels on x-axis in GORIC(A) weigths plot and give names to hypotheses #
 #' # For example, let us say that the studies come from the years 2015, 2016, 2017, 2019.
 #' # Because of unequal spacing, you may want to use numbers instead of characters:
 #' Name_studies <- c(2015, 2016, 2017, 2019)
-#' GoricEvSyn_LLandPT(TypeEv, S, LL, PT, Name_studies)
+#' Name_Hypo <- c("H0", "Hpos", "Hneg")
+#' GoricEvSyn_LLandPT(TypeEv, S, LL, PT, Name_studies, Name_Hypo)
 
 
-GoricEvSyn_LLandPT <- function(TypeEv, S, LL, PT, Name_studies = 1:S, PrintPlot = T) {
+GoricEvSyn_LLandPT <- function(TypeEv, S, LL, PT, Name_studies = 1:S, Name_Hypo = NULL, PrintPlot = T) {
 
   # Checks on input
   #
@@ -92,21 +94,33 @@ GoricEvSyn_LLandPT <- function(TypeEv, S, LL, PT, Name_studies = 1:S, PrintPlot 
   if(length(Name_studies) != S){
     print(paste("The argument 'Name_studies' should consist of S = ", S, " elements (either all numbers or all characters)."))
     stop()
-    if(!all(is.numeric(Name_studies)) & !all(is.character(Name_studies))){
-      print(paste("The argument 'Name_studies' should consist of either S = ", S, " numbers or S = ", S, " characters."))
-      stop()
-    }
+  }
+  if(!all(is.numeric(Name_studies)) & !all(is.character(Name_studies))){
+    print(paste("The argument 'Name_studies' should consist of either S = ", S, " numbers or S = ", S, " characters."))
+    stop()
+  }
+  #
+  if(is.null(Name_Hypo)){
+    Name_Hypo <- paste0("H", 1:(NrHypos+1))
+  }
+  if(length(Name_Hypo) != (NrHypos+1)){
+    print(paste("The argument 'Name_Hypo' should consist of 'NrHypos+1' = ", (NrHypos+1), " elements (all characters)."))
+    stop()
+  }
+  if(!all(is.character(Name_Hypo))){
+    print(paste("The argument 'Name_Hypo' should consist of solely characters ('NrHypos+1 = ", (NrHypos+1), " characters)."))
+    stop()
   }
 
 
   weight_m <- matrix(NA, nrow = S, ncol = (NrHypos + 1))
   #CumulativeGorica <- matrix(NA, nrow = S, ncol = (NrHypos + 1))
   #CumulativeGoricaWeights <- matrix(NA, nrow = S, ncol = (NrHypos + 1))
-  #colnames(CumulativeGorica) <- colnames(CumulativeGoricaWeights) <- colnames(LL) <- colnames(PT) <- paste0("H", 1:(NrHypos + 1))
+  #colnames(CumulativeGorica) <- colnames(CumulativeGoricaWeights) <- colnames(LL) <- colnames(PT) <- Name_Hypo
   #rownames(CumulativeGorica) <- rownames(CumulativeGoricaWeights) <- rownames(LL) <- rownames(PT) <- paste0("Study", 1:S)
   CumulativeGorica <- matrix(NA, nrow = (S+1), ncol = (NrHypos + 1))
   CumulativeGoricaWeights <- matrix(NA, nrow = (S+1), ncol = (NrHypos + 1))
-  colnames(CumulativeGorica) <- colnames(CumulativeGoricaWeights) <- colnames(LL) <- colnames(PT) <- colnames(weight_m) <- paste0("H", 1:(NrHypos + 1))
+  colnames(CumulativeGorica) <- colnames(CumulativeGoricaWeights) <- colnames(LL) <- colnames(PT) <- colnames(weight_m) <- Name_Hypo
   rownames(CumulativeGorica) <- rownames(CumulativeGoricaWeights) <- c(paste0("Study", 1:S), "Final")
   rownames(LL) <- rownames(PT) <- rownames(weight_m) <- paste0("Study", 1:S)
 
@@ -148,14 +162,14 @@ GoricEvSyn_LLandPT <- function(TypeEv, S, LL, PT, Name_studies = 1:S, PrintPlot 
   #Final.GORICA.weights <- matrix(Final.GORICA.weights, nrow = 1)
   #rownames(Final.GORICA) <- "Final"
   #rownames(Final.GORICA.weights) <- "Final"
-  rownames(Final.rel.GORICA.weights) <- c(paste0("H", 1:(NrHypos + 1)))
-  colnames(Final.rel.GORICA.weights) <- c(paste0("vs H", 1:(NrHypos + 1)))
+  rownames(Final.rel.GORICA.weights) <- Name_Hypo
+  colnames(Final.rel.GORICA.weights) <- paste0("vs ", Name_Hypo)
 
 
   # Plot
   if(PrintPlot == T){
     NrHypos_incl <- (NrHypos + 1)
-    Legend <- c("per study", "cumulative", c(paste0("H", 1:(NrHypos + 1))))
+    Legend <- c("per study", "cumulative", Name_Hypo)
     Pch <- c(16, 8, rep(NA, NrHypos_incl))
     Col <- c(1, 1, 1:NrHypos_incl)
     Lty <- c(NA, 1, rep(1,NrHypos_incl))

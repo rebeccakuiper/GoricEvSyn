@@ -13,8 +13,8 @@
 #' @param NrHypos The number of theory-based hypotheses that will be evaluated within each study (is a scalar with an integer value).
 #' @param Hypo_studies A vector of strings containing the NrHypos theory-based hypotheses. If SameHypo = 0, then there should be S specifications of the NrHypos theory-based hypotheses, that is S times NrHypos strings.
 #' @param Safeguard Indicator of which safeguard-hypothesis should be used: "unconstrained" (default; i.e., all possible theories including the one specified), "none" (only advised when set of hyptheses cover all theories), or (only when 'NrHypos = 1') "complement" (i.e., the remaining theories).
-#' @param Name_studies Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.
-#' @param PrintPlot Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for last study are the final ones).
+#' @param Name_studies Optional. Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.
+#' @param PrintPlot Optional. Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for the last study are the final ones).
 #'
 #' @return The output comprises, among other things, the cumulative and final evidence for the theory-based hypotheses.
 #' @importFrom restriktor goric
@@ -364,10 +364,10 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
   if(length(Name_studies) != S){
     print(paste("The argument 'Name_studies' should consist of S = ", S, " elements (either all numbers or all characters)."))
     stop()
-    if(!all(is.numeric(Name_studies)) & !all(is.character(Name_studies))){
-      print(paste("The argument 'Name_studies' should consist of either S = ", S, " numbers or S = ", S, " characters."))
-      stop()
-    }
+  }
+  if(!all(is.numeric(Name_studies)) & !all(is.character(Name_studies))){
+    print(paste("The argument 'Name_studies' should consist of either S = ", S, " numbers or S = ", S, " characters."))
+    stop()
   }
 
 
@@ -436,15 +436,15 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
     #
     # Run GORICA
     if(NrHypos == 1 & Safeguard == "complement"){ # vs complement
-      eval(parse(text = paste("result2 <- goric(est, VCOV = cov, ",
+      eval(parse(text = paste("result2 <- restriktor:::goric(est, VCOV = cov, ",
                               HypoSet,
                               ", type = 'gorica', comparison = Safeguard)")))
       rel.weight_mu[s,] <- result2$relative.gw[1, NrHypos_incl]
     } else{ # vs unconstrained (default)
-      eval(parse(text = paste("result2 <- goric(est, VCOV = cov, ",
+      eval(parse(text = paste("result2 <- restriktor:::goric(est, VCOV = cov, ",
                               HypoSet,
                               ", type = 'gorica', comparison = Safeguard)")))
-      #result2 <- goric(est, VCOV = cov, HypoSet, type = "gorica", comparison = Safeguard)
+      #result2 <- restriktor:::goric(est, VCOV = cov, HypoSet, type = "gorica", comparison = Safeguard)
       if(Safeguard == "unconstrained"){
         rel.weight_mu[s,] <- result2$relative.gw[, NrHypos_incl]
       }

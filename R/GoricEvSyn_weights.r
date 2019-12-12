@@ -5,7 +5,8 @@
 #' In case IC values are used as input, the added-evidence approach is used in which the aggregated evidence from, says, 5 studies is stronger than as if the data were combined (as if that was possible).
 #'
 #' @param S The number of (primary) studies. That is, the results (evidence) of S studies will be aggregated.
-#' @param IC A matrix with information criteria (AIC, ORIC, GORIC, or GORICA) values of size S x 'NrHypos+1', where 'NrHypos+1' stands for the number of theory-based hypotheses plus a safeguard hypothesis (the complement or unconstrained). Notably, only when the set of hypotheses cover the whol space / all theories (e.g., positive versus negative effect), then you can do without a safeguard hypothesis.
+#' @param Weights A matrix with weigths (i.e., IC weights or posterior model probabilities) of size S x 'NrHypos+1', where 'NrHypos+1' stands for the number of theory-based hypotheses plus a safeguard hypothesis (the complement or unconstrained). Notably, only when the set of hypotheses cover the whol space / all theories (e.g., positive versus negative effect), then you can do without a safeguard hypothesis.
+#' @param PriorWeights Optional. Vector containing 'NrHypos+1' numbers that represent the prior belief for this model. By default, equal prior weights are used (i.e., 1/(NrHypos+1)). Notably, in case the prior weights do not sum to 1, it will be rescaled such that it does; which implies that relative importance can be used and not per se weights.
 #' @param Name_studies Optional. Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.
 #' @param Name_Hypo Optional. Vector containing 'NrHypos+1' characters which will be used for labelling the hypothesis. Default: H1, H2, ....
 #' @param PrintPlot Optional. Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for the last study are the final ones).
@@ -15,21 +16,21 @@
 #' @examples
 #'
 #' S <- 4
-#' IC <- myGORICs # Example based on S = 4 studies and 3 hypotheses:
+#' Weights <- myWeights # Example based on S = 4 studies and 3 hypotheses:
 #' # H0 <- "beta1 == 0"  # this hypothesis could have been left out
 #' # Hpos <- "beta1 > 0"
 #' # Hneg <- "beta1 < 0"
 #' # Note that in this set the whole space is (all theories are) covered so the unconstrained is not needed as safeguard-hypothesis
-#' GoricEvSyn_IC(S, IC)
+#' GoricEvSyn_IC(S, Weights)
 #'
 #' # Change labels on x-axis in GORIC(A) weigths plot and give names to hypotheses #
 #' # For example, let us say that the studies come from the years 2015, 2016, 2017, 2019.
 #' # Because of unequal spacing, you may want to use numbers instead of characters:
 #' Name_studies <- c(2015, 2016, 2017, 2019)
 #' Name_Hypo <- c("H0", "Hpos", "Hneg")
-#' GoricEvSyn_IC(S, IC, Name_studies, Name_Hypo)
+#' GoricEvSyn_IC(S, Weights, Name_studies, Name_Hypo)
 
-GoricEvSyn_IC <- function(S, IC, Name_studies = 1:S, Name_Hypo = NULL, PrintPlot = T) {
+GoricEvSyn_weights <- function(S, Weights, PriorWeights = NULL, Name_studies = 1:S, Name_Hypo = NULL, PrintPlot = T) {
 
   # Checks on input
   #
@@ -42,15 +43,28 @@ GoricEvSyn_IC <- function(S, IC, Name_studies = 1:S, Name_Hypo = NULL, PrintPlot
     stop()
   }
   #
-  if(length(dim(IC)) != 2){
-    print(paste0("The IC matrix should have 2 dimensions; namely, S rows and 'NrHypos+1' columns. It should not be an array with more than 2 dimensions."))
+  if(length(dim(Weights)) != 2){
+    print(paste0("The weights matrix Weights should have 2 dimensions; namely, S rows and 'NrHypos+1' columns. It should not be an array with more than 2 dimensions."))
     stop()
   }
-  if(dim(IC)[1] != S){
-    print(paste0("The number of rows in the IC matrix (", dim(IC)[1], ") does not equal S = ", S, "."))
+  if(dim(Weights)[1] != S){
+    print(paste0("The number of rows in the weights matrix Weights (", dim(Weights)[1], ") does not equal S = ", S, "."))
     stop()
   }
-  NrHypos <- dim(IC)[2] - 1
+  NrHypos <- dim(Weights)[2] - 1
+  #
+  if(is.null(PriorWeights)){
+    PriorWeights <- rep(1/(NrHypos + 1), (NrHypos + 1))
+  }
+  if(length(PriorWeights) != (NrHypos+1)){
+    print(paste("The argument 'PriorWeights' should consist of 'NrHypos+1' = ", (NrHypos+1), " elements."))
+    stop()
+  }
+  if(!all(is.numeric(PriorWeights))){
+    print(paste("The argument 'PriorWeights' should consist of solely numbers ('NrHypos+1 = ", (NrHypos+1), " numbers)."))
+    stop()
+  }
+  PriorWeights <- PriorWeights/sum(PriorWeights) # To make it sum to 1 (if it not already did)
   #
   if(PrintPlot != T & PrintPlot != F){
     print(paste("The argument 'PrintPlot' should be TRUE or FALSE, not ", PrintPlot, "."))
@@ -78,46 +92,29 @@ GoricEvSyn_IC <- function(S, IC, Name_studies = 1:S, Name_Hypo = NULL, PrintPlot
   }
 
 
-  weight_m <- matrix(NA, nrow = S, ncol = (NrHypos + 1))
-  #CumulativeGorica <- matrix(NA, nrow = S, ncol = (NrHypos + 1))
-  #CumulativeGoricaWeights <- matrix(NA, nrow = S, ncol = (NrHypos + 1))
-  #colnames(CumulativeGorica) <- colnames(CumulativeGoricaWeights) <- colnames(IC) <- Name_Hypo
-  #rownames(CumulativeGorica) <- rownames(CumulativeGoricaWeights) <- rownames(IC) <- paste0("Study", 1:S)
-  CumulativeGorica <- matrix(NA, nrow = (S+1), ncol = (NrHypos + 1))
-  CumulativeGoricaWeights <- matrix(NA, nrow = (S+1), ncol = (NrHypos + 1))
-  colnames(CumulativeGorica) <- colnames(CumulativeGoricaWeights) <- colnames(IC) <- colnames(weight_m) <- Name_Hypo
-  rownames(CumulativeGorica) <- rownames(CumulativeGoricaWeights) <- c(paste0("Study", 1:S), "Final")
-  rownames(IC) <- rownames(weight_m) <- paste0("Study", 1:S)
+  CumulativeWeights <- matrix(NA, nrow = (S+1), ncol = (NrHypos + 1))
+  colnames(CumulativeWeights) <- Name_Hypo
+  rownames(CumulativeWeights) <- c(paste0("Study", 1:S), "Final")
 
-
-  sumIC <- 0
-  for(s in 1:S){
-    minIC <- min(IC[s,])
-    weight_m[s,] <- exp(-0.5*(IC[s,]-minIC)) / sum(exp(-0.5*(IC[s,]-minIC)))
-    #
-    sumIC <- sumIC + IC[s,]
-    CumulativeGorica[s,] <- sumIC
-    #CumulativeGoricaWeights[s,] <- exp(-0.5*CumulativeGorica[s,]) / sum(exp(-0.5*CumulativeGorica[s,]))
-    minGoric <- min(CumulativeGorica[s,])
-    CumulativeGoricaWeights[s,] <- exp(-0.5*(CumulativeGorica[s,]-minGoric)) / sum(exp(-0.5*(CumulativeGorica[s,]-minGoric)))
+  CumulativeWeights[1,] <- PriorWeights * Weights[1,] / sum( PriorWeights * Weights[1,] )
+  for(s in 2:S){
+    CumulativeWeights[s,] <- CumulativeWeights[(s-1),] * Weights[s,] / sum( CumulativeWeights[(s-1),] * Weights[s,] )
   }
-  EvSyn_approach <- "Added-evidence approach (which is the only option when the input consists of ICs)"
+  EvSyn_approach <- "Added-evidence approach (which is the only option when the input consists of Weights)"
 
-  CumulativeGorica[(S+1),] <- CumulativeGorica[S,]
-  CumulativeGoricaWeights[(S+1),] <- CumulativeGoricaWeights[S,]
+  CumulativeWeights[(S+1),] <- CumulativeWeights[S,]
   #
-  #Final.GORICA <- matrix(CumulativeGorica[S,], nrow = 1)
-  Final.GORICA.weights <- CumulativeGoricaWeights[S,]
-  Final.rel.GORICA.weights <- Final.GORICA.weights %*% t(1/Final.GORICA.weights)
-  #Final.GORICA.weights <- matrix(Final.GORICA.weights, nrow = 1)
-  #rownames(Final.GORICA) <- "Final"
-  #rownames(Final.GORICA.weights) <- "Final"
-  rownames(Final.rel.GORICA.weights) <- Name_Hypo
-  colnames(Final.rel.GORICA.weights) <- paste0("vs ", Name_Hypo)
+  Final.weights <- CumulativeWeights[S,]
+  Final.rel.weights <- Final.weights %*% t(1/Final.weights)
+  rownames(Final.rel.weights) <- Name_Hypo
+  colnames(Final.rel.weights) <- paste0("vs ", Name_Hypo)
 
 
   # Plot
   if(PrintPlot == T){
+    weight_m <- Weights
+    CumulativeGoricaWeights <- CumulativeWeights
+    #
     NrHypos_incl <- (NrHypos + 1)
     Legend <- c("per study", "cumulative", Name_Hypo)
     Pch <- c(16, 8, rep(NA, NrHypos_incl))
@@ -160,12 +157,10 @@ GoricEvSyn_IC <- function(S, IC, Name_studies = 1:S, Name_Hypo = NULL, PrintPlot
 
 
   # Ouput
-  #final <- list(GORICA_m = IC, GORICA.weight_m = weight_m,
-  #              EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
-  #              Final.GORICA = Final.GORICA, Final.GORICA.weights = Final.GORICA.weights, Final.rel.GORICA.weights = Final.rel.GORICA.weights)
-  final <- list(GORICA_m = IC, GORICA.weight_m = weight_m,
-                EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
-                Final.rel.GORICA.weights = Final.rel.GORICA.weights)
+  final <- list(weight_m = Weights,
+                EvSyn_approach = EvSyn_approach,
+                Cumulative.weights = CumulativeWeights,
+                Final.rel.weights = Final.rel.weights)
   return(final)
 
 }
