@@ -4,7 +4,9 @@
 \name{myPTs}
 \alias{myPTs}
 \title{An example of penalty (PT) values}
-\format{An object of class \code{matrix} with 4 rows and 3 columns.}
+\format{
+An object of class \code{matrix} with 4 rows and 3 columns.
+}
 \usage{
 data(myPTs)
 }

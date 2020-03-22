@@ -1,7 +1,7 @@
 
-#' GORIC(A) evidence synthesis
+#' Bayesian evidence synthesis
 #'
-#' GORIC(A) evidence synthesis (GoricEvSyn) aggregates the evidence for theory-based hypotheses from multiple studies that may use diverse designs to investigate the same central theory. There is also an interactive web application on my website to perform GoricEvSyn: \url{https://www.uu.nl/staff/RMKuiper/Websites\%20\%2F\%20Shiny\%20apps}.
+#' Bayesian evidence synthesis (BayesianEvSyn) aggregates the evidence for theory-based hypotheses from multiple studies that may use diverse designs to investigate the same central theory. There is also an interactive web application on my website to perform BayesianEvSyn: \url{https://www.uu.nl/staff/RMKuiper/Websites\%20\%2F\%20Shiny\%20apps}.
 #'
 #' @param TypeEv The type of evidence-synthesis approach: Equal-evidence approach (0) or Added-evidence approach (1).
 #' In case of an equal-evidence approach, aggregating evidence from, say, 5 studies with n=100 observations is the same as obtaining evidence from 1 study (as if it was possible) with n=500 observations (like meta-analysis does).
@@ -9,17 +9,19 @@
 #' @param S The number of (primary) studies. That is, the results (evidence) of S studies will be aggregated.
 #' @param Param_studies List of S 'named' vectors with the k_s (standardized) parameter estimates of interest of Study s. Thus, there are S items in the list and each item is a 'named' vector with k_s elements: the k_s number of parameter estimates relevant for that study. In case each study has the same number of parameters (k) which denote the same (in terms of hypothesis specification), Param_studies can be an S x k 'named' matrix. Note: The names of the vectors (or the column names of the S x 'k' matrix) with estimates should be used in the hypothesis specification.
 #' @param CovMx_studies List of the S covariance matrices of the (standardized) parameter estimates of interest (of size k_s x k_s). In case number of parameters are the same, it can also be a S*k_s x k_s matrix. Note: The columns (and rows) do not need to be named.
+#' @param N Vector of size S, with the sample size for each study.
 #' @param SameHypo Indicator whether the same hypotheses are used (1) or not (0) in all S studies. If SameHypo = 1, then the same estimates in Param_studies should have the same name.
 #' @param NrHypos The number of theory-based hypotheses that will be evaluated within each study (is a scalar with an integer value).
 #' @param Hypo_studies A vector of strings containing the NrHypos theory-based hypotheses. If SameHypo = 0, then there should be S specifications of the NrHypos theory-based hypotheses, that is S times NrHypos strings.
 #' @param Safeguard Indicator of which safeguard-hypothesis should be used: "unconstrained" (default; i.e., all possible theories including the one specified), "none" (only advised when set of hyptheses cover all theories), or (only when 'NrHypos = 1') "complement" (i.e., the remaining theories).
-#' @param Name_studies Optional. Vector of S numbers or S characters to be printed at the x-axis of the plot with GORIC(A) weights. Default: Name_studies = 1:S.
-#' @param PrintPlot Optional. Indicator whether plot of GORIC(A) weigths should be printed (TRUE; default) or not (FALSE). The GORIC(A) weights per study are plotted and the cumulative GORIC(A) weights (where those for the last study are the final ones).
+#' @param Name_studies Optional. Vector of S numbers or S characters to be printed at the x-axis of the plot with posterior model probabilities (PMPs). Default: Name_studies = 1:S.
+#' @param PrintPlot Optional. Indicator whether plot of posterior model probabilities (PMPs) should be printed (TRUE; default) or not (FALSE). The posterior model probabilities per study are plotted and the cumulative posterior model probabilities (where those for the last study are the final ones).
 #'
 #' @return The output comprises, among other things, the cumulative and final evidence for the theory-based hypotheses.
-#' @importFrom restriktor goric
+#' @importFrom bain bain
 #' @export
 #' @examples
+#' # TO DO voeg in voorbeelden hieronder N (vector of length S) toe!
 #'
 #' ### Example 1: 2 ANOVA studies (Monin and Holubar) ###
 #' ### We will use the estimates of the ANOVA models
@@ -46,16 +48,16 @@
 #' SameHypo <- 0
 #' NrHypos <- 2
 #' # names(est_1) # Specify restrictions using those names
-#' H11 <- 'group1 == group2; group2 > group3'  # Note: cannot use group1 == group2 > group3
-#' H12 <- 'group2 > group1; group1 > group3'   # Note: cannot use group2 > group1 > group3
+#' H11 <- 'group1 = group2 & group2 > group3'
+#' H12 <- 'group2 > group1 & group1 > group3'
 #' # names(est_2) # Specify restrictions using those names
-#' H21 <- 'gr1 == gr2; gr2 > gr3'  # Note: cannot use gr1 == gr2 > gr3
-#' H22 <- 'gr2 > gr1; gr1 > gr3'   # Note: cannot use gr2 > gr1 > gr3
+#' H21 <- 'gr1 = gr2 & gr2 > gr3'  # Note: cannot use gr1 == gr2 > gr3
+#' H22 <- 'gr2 > gr1 & gr1 > gr3'   # Note: cannot use gr2 > gr1 > gr3
 #' Hypo_studies <- c(H11, H12, H21, H22)
 #' #
 #' # Evidence synthesis
 #' TypeEv <- 1 # Added-evidence approach
-#' GoricEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies)
+#' BayesianEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies)
 #'
 #'
 #'
@@ -103,16 +105,16 @@
 #' # Note: in this case the same for each study
 #' SameHypo <- 1
 #' NrHypos <- 3
-#' H0 <- "beta1 == 0"
+#' H0 <- "beta1 = 0"
 #' Hpos <- "beta1 > 0"
 #' Hneg <- "beta1 < 0"
 #' Hypo_studies <- c(H0, Hpos, Hneg)
-#' # Since this covers the whole space / covers all theories, we do not need a safeguard-hypothesis:
+#' # Since this covers the whole space / covers all theories, we do not need a safeguard-hypothesis
 #' Safeguard <- "none"
 #' #
 #' # Evidence synthesis
 #' TypeEv <- 1 # Added-evidence approach
-#' GoricEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies, Safeguard)
+#' BayesianEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies, Safeguard)
 #'
 #'
 #'
@@ -133,7 +135,7 @@
 #' # Standardize data - since parameters for continuous variables will be compared
 #' data1 <- as.data.frame(scale(data))
 #' y1 <- ratio[1]*data1$x11 + ratio[2]*data1$x12 + ratio[3]*data1$x13 + rnorm(n1)
-#' # Note: since there is one outcome, the outcome does not need to be standardized.
+#' # Note: since there is one outcome, the outcome does not need to be standardized
 #' # Fit regression model
 #' fit.lm1 <- lm(y1 ~ 1 + x11 + x12 + x13, data = data1)
 #'
@@ -146,7 +148,7 @@
 #' # Standardize data - since parameters for continuous variables will be compared
 #' data2 <- as.data.frame(scale(data))
 #' y2 <- ratio[1]*data2$x21 + ratio[2]*data2$x22 + ratio[3]*data2$x23 + rnorm(n2)
-#' # Note: since there is one outcome, the outcome does not need to be standardized.
+#' # Note: since there is one outcome, the outcome does not need to be standardized
 #' # Fit regression model
 #' fit.lm2 <- lm(y2 ~ 1 + x21 + x22 + x23, data = data2)
 #'
@@ -159,7 +161,7 @@
 #' # Standardize data - since parameters for continuous variables will be compared
 #' data3 <- as.data.frame(scale(data))
 #' y3 <- ratio[1]*data3$x31 + ratio[2]*data3$x32 + ratio[3]*data3$x33 + rnorm(n3)
-#' # Note: since there is one outcome, the outcome does not need to be standardized.
+#' # Note: since there is one outcome, the outcome does not need to be standardized
 #' # Fit regression model
 #' fit.lm3 <- lm(y3 ~ 1 + x31 + x32 + x33, data = data3)
 #'
@@ -183,9 +185,9 @@
 #' # Note: in this case the same for each study
 #' SameHypo <- 1
 #' # colnames(est) # Specify restrictions using those names
-#' H1 <- 'x1 < x2; x2 < x3'   # Note: cannot use x1 < x2 < x3
+#' H1 <- 'x1 < x2 & x2 < x3'   # Note: cannot use x1 < x2 < x3
 #' # Since estimates of continuous variables are compared in our theory, we standardized the data before to obtain comparable estimates.
-#' # Since no restrictions on intercept, you can leave it out in 'Param_studies' and 'CovMx_studies'; this does not impact the GORIC(A) weights.
+#' # Since no restrictions on intercept, you can leave it out in 'Param_studies' and 'CovMx_studies'; this does not impact the posterior model probabilities.
 #' NrHypos <- 1
 #' # Since we have only one theory-based hypothesis, we will use the (more powerful) complement of the hypothesis (Vanbrabant, Van Loey, Kuiper, 2019).
 #' # The complement represents the remaining 11 theories, while the unconstrained reflects all 12 possible theories including H1.
@@ -193,16 +195,17 @@
 #' #
 #' # Evidence synthesis
 #' TypeEv <- 1 # Added-evidence approach
-#' GoricEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies = H1, Safeguard)
+#' BayesianEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies = H1, Safeguard)
 #'
-#' # Change labels on x-axis in GORIC(A) weigths plot #
+#' # Change labels on x-axis in PMPs plot #
 #' # For example, let us say that the studies come from the years 2016, 2017, 2019.
 #' # Because of unequal spacing, you may want to use numbers instead of characters:
 #' Name_studies <- c(2016, 2017, 2019)
-#' GoricEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies = H1, Safeguard, Name_studies)
+#' BayesianEvSyn(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies = H1, Safeguard, Name_studies)
 
 
-GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypos, Hypo_studies, Safeguard = "unconstrained", Name_studies = 1:S, PrintPlot = T) {
+BayesianEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, N, SameHypo, NrHypos, Hypo_studies, Safeguard = "unconstrained", Name_studies = 1:S, PrintPlot = T) {
+
   # Checks on input
   #
   if(length(TypeEv) != 1){
@@ -311,6 +314,11 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
     CovMx_list <- 1
   }
   #
+  if(length(N) != S){
+    print(paste("The vector of sample size per study should consist of S = ", S, " elements"))
+    stop()
+  }
+  #
   if(length(SameHypo) != 1){
     print(paste("The indicator for using the same set of hypotheses in all studies (SameHypo) should be a scalar; more specifically, it should be 0 or 1."))
     stop()
@@ -374,35 +382,33 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
   if(Safeguard == "none"){
     NrHypos_incl <- NrHypos
   }
-  GORICA_m  <- array(data=NA, dim=c(S,NrHypos_incl))
-  weight_m <- array(data=NA, dim=c(S,NrHypos_incl))
-  LL <- matrix(NA, nrow = S, ncol = NrHypos_incl)
-  PT <- matrix(NA, nrow = S, ncol = NrHypos_incl)
-  rownames(LL) <- rownames(PT) <- paste0("Study", 1:S)
-  #CumulativeGorica <- matrix(NA, nrow = S, ncol = NrHypos_incl)
-  #CumulativeGoricaWeights <- matrix(NA, nrow = S, ncol = NrHypos_incl)
-  #rownames(CumulativeGorica) <- rownames(CumulativeGoricaWeights) <- paste0("Study", 1:S)
-  CumulativeGorica <- matrix(NA, nrow = (S+1), ncol = NrHypos_incl)
-  CumulativeGoricaWeights <- matrix(NA, nrow = (S+1), ncol = NrHypos_incl)
-  rownames(CumulativeGorica) <- rownames(CumulativeGoricaWeights) <- c(paste0("Study", 1:S), "Final")
+  BF_m  <- array(data=NA, dim=c(S,NrHypos_incl))
+  PMP_m <- array(data=NA, dim=c(S,NrHypos_incl))
+  logFit <- matrix(NA, nrow = S, ncol = NrHypos_incl)
+  logCompl <- matrix(NA, nrow = S, ncol = NrHypos_incl)
+  rownames(logFit) <- rownames(logCompl) <- paste0("Study", 1:S)
+  #
+  CumulativeBF <- matrix(NA, nrow = (S+1), ncol = NrHypos_incl)
+  CumulativePMPs <- matrix(NA, nrow = (S+1), ncol = NrHypos_incl)
+  rownames(CumulativeBF) <- rownames(CumulativePMPs) <- c(paste0("Study", 1:S), "Final")
   if(NrHypos == 1 & Safeguard == "complement"){
     namesH <- c("H1", "Hc1")
-    rel.weight_mu <- array(data=NA, dim=c(S,1))
+    rel.PMP_mu <- array(data=NA, dim=c(S,1))
   }else if(Safeguard == "none"){
     namesH <- c(paste0("H", 1:NrHypos))
-    rel.weight_mu <- array(data=NA, dim=c(S,NrHypos_incl))
+    rel.PMP_mu <- array(data=NA, dim=c(S,NrHypos_incl))
   }else{
     namesH <- c(paste0("H", 1:NrHypos), "Hu")
-    rel.weight_mu <- array(data=NA, dim=c(S,NrHypos_incl))
+    rel.PMP_mu <- array(data=NA, dim=c(S,NrHypos_incl))
   }
-  colnames(GORICA_m) <- colnames(weight_m) <- colnames(LL) <- colnames(PT) <- colnames(CumulativeGorica) <- colnames(CumulativeGoricaWeights) <- namesH
-  rownames(GORICA_m) <- rownames(rel.weight_mu) <- rownames(weight_m) <- paste0("Study", 1:S)
+  colnames(BF_m) <- colnames(PMP_m) <- colnames(logFit) <- colnames(logCompl) <- colnames(CumulativeBF) <- colnames(CumulativePMPs) <- namesH
+  rownames(BF_m) <- rownames(rel.PMP_mu) <- rownames(PMP_m) <- paste0("Study", 1:S)
   #
+  #
+  # TO DO plak hypo's vast met ; - check hoe het in bain werkt!
   if(SameHypo==1){ # if same hypotheses for all studies
     for(HypoTeller in 1:NrHypos){
-      #assign(paste0("H", HypoTeller), Hypo_studies[HypoTeller])
-      #assign(paste0("H", HypoTeller), Hypo_studies[HypoTeller], envir = parent.env(environment())) # error: cannot add bindings to a locked environment
-      eval(parse(text = paste0("H", HypoTeller, " <<- Hypo_studies[(HypoTeller)]")))
+      assign(paste0("H", HypoTeller), Hypo_studies[HypoTeller])
     }
   }
   teller <- 0
@@ -411,8 +417,7 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
     #
     if(SameHypo==0){ # if NOT same hypotheses for all studies
       for(HypoTeller in 1:NrHypos){
-        #assign(paste0("H", HypoTeller), Hypo_studies[(teller+HypoTeller)], envir = parent.env(environment()))
-        eval(parse(text = paste0("H", HypoTeller, " <<- Hypo_studies[(teller+HypoTeller)]")))
+        assign(paste0("H", HypoTeller), Hypo_studies[(teller+HypoTeller)])
       }
     }
     #
@@ -435,58 +440,69 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
       cov <- matrix(cov)
     }
     #
-    # Run GORICA
-    if(NrHypos == 1 & Safeguard == "complement"){ # vs complement
-      eval(parse(text = paste0("res_goric <- restriktor:::goric(est, VCOV = cov, ",
+    # Run bain
+    # TO DO- gebruik evt calc.BF maar kan dat of moet ik dan ook daar weer description etc
+    njoint <- length(est)
+    samp <- N[s]
+    if(NrHypos == 1 & Safeguard == "complement"){ # vs complement # TO DO dit maakt uit voor wat aflezen, niet voor hoe bain runnen!
+      eval(parse(text = paste("res_bain <- bain:::bain(est, ",
+                              HypoSet,
+                              ", n=samp, Sigma=cov, group_parameters=0, joint_parameters = njoint)")))
+                              # TO DO
+      rel.PMP_mu[s,] <- res_goric$relative.gw[1, NrHypos_incl]
+
+      #BFmc[s,] <- result2$fit$BF[1:n.hypos]
+      #BFmu[s,] <- result2$fit$Fit[1:n.hypos] / result2$fit$Com[1:n.hypos]
+      #PMPmc[s,c(T,F)] <- result2$fit$BF[1:n.hypos]/(1+result2$fit$BF[1:n.hypos])
+      #PMPmc[s,c(F,T)] <- 1-PMPmc[s,c(T,F)]
+      #PMPmu[s,] <- result2$fit$PMPa[1:n.hypos]
+
+    } else{ # vs unconstrained (default)
+      eval(parse(text = paste("res_goric <- restriktor:::goric(est, VCOV = cov, ",
                               HypoSet,
                               ", type = 'gorica', comparison = Safeguard)")))
-      rel.weight_mu[s,] <- res_goric$relative.gw[1, NrHypos_incl]
-    } else{ # vs none or unconstrained (default)
-      eval(parse(text = paste0("res_goric <- restriktor:::goric(est, VCOV = cov, ",
-                              HypoSet,
-                              ", type = 'gorica', comparison = Safeguard)")))
-      #res_goric <- restriktor:::goric(est, VCOV = cov, H1, H2, H3, type = "gorica", comparison = Safeguard)
+      #res_goric <- restriktor:::goric(est, VCOV = cov, HypoSet, type = "gorica", comparison = Safeguard)
       if(Safeguard == "unconstrained"){
-        rel.weight_mu[s,] <- res_goric$relative.gw[, NrHypos_incl]
+        rel.PMP_mu[s,] <- res_goric$relative.gw[, NrHypos_incl]
       }
     }
-    LL[s,] <- res_goric$result[,2]
-    PT[s,] <- res_goric$result[,3]
-    GORICA_m[s,] <- res_goric$result[,4]
-    weight_m[s,] <- res_goric$result[,5]
+    logFit[s,] <- res_goric$result[,2]
+    logCompl[s,] <- res_goric$result[,3]
+    BF_m[s,] <- res_goric$result[,4]
+    PMP_m[s,] <- res_goric$result[,5]
     #
     teller <- teller + NrHypos
   }
-  #
-  sumLL <- 0
-  sumPT <- 0
+
+  sumlogFit <- 0
+  sumlogCompl <- 0
   if(TypeEv == 1){ # added-ev approach
     for(s in 1:S){
-      sumLL <- sumLL + LL[s,]
-      sumPT <- sumPT + PT[s,]
-      CumulativeGorica[s,] <- -2 * sumLL + 2 * sumPT
-      #CumulativeGoricaWeights[s,] <- exp(-0.5*CumulativeGorica[s,]) / sum(exp(-0.5*CumulativeGorica[s,]))
-      minGoric <- min(CumulativeGorica[s,])
-      CumulativeGoricaWeights[s,] <- exp(-0.5*(CumulativeGorica[s,]-minGoric)) / sum(exp(-0.5*(CumulativeGorica[s,]-minGoric)))
+      sumlogFit <- sumlogFit + logFit[s,]
+      sumlogCompl <- sumlogCompl + logCompl[s,]
+      CumulativeBF[s,] <- -2 * sumlogFit + 2 * sumlogCompl
+      #CumulativePMPs[s,] <- exp(-0.5*CumulativeBF[s,]) / sum(exp(-0.5*CumulativeBF[s,]))
+      minGoric <- min(CumulativeBF[s,])
+      CumulativePMPs[s,] <- exp(-0.5*(CumulativeBF[s,]-minGoric)) / sum(exp(-0.5*(CumulativeBF[s,]-minGoric)))
     }
     EvSyn_approach <- "Added-evidence approach"
   }else{ # equal-ev approach
     for(s in 1:S){
-      sumLL <- sumLL + LL[s,]
-      sumPT <- sumPT + PT[s,]
-      CumulativeGorica[s,] <- -2 * sumLL + 2 * sumPT/s
-      #CumulativeGoricaWeights[s,] <- exp(-0.5*CumulativeGorica[s,]) / sum(exp(-0.5*CumulativeGorica[s,]))
-      minGoric <- min(CumulativeGorica[s,])
-      CumulativeGoricaWeights[s,] <- exp(-0.5*(CumulativeGorica[s,]-minGoric)) / sum(exp(-0.5*(CumulativeGorica[s,]-minGoric)))
+      sumlogFit <- sumlogFit + logFit[s,]
+      sumlogCompl <- sumlogCompl + logCompl[s,]
+      CumulativeBF[s,] <- -2 * sumlogFit + 2 * sumlogCompl/s
+      #CumulativePMPs[s,] <- exp(-0.5*CumulativeBF[s,]) / sum(exp(-0.5*CumulativeBF[s,]))
+      minGoric <- min(CumulativeBF[s,])
+      CumulativePMPs[s,] <- exp(-0.5*(CumulativeBF[s,]-minGoric)) / sum(exp(-0.5*(CumulativeBF[s,]-minGoric)))
     }
     EvSyn_approach <- "Equal-evidence approach"
   }
 
-  CumulativeGorica[(S+1),] <- CumulativeGorica[S,]
-  CumulativeGoricaWeights[(S+1),] <- CumulativeGoricaWeights[S,]
+  CumulativeBF[(S+1),] <- CumulativeBF[S,]
+  CumulativePMPs[(S+1),] <- CumulativePMPs[S,]
   #
-  #Final.GORICA <- matrix(CumulativeGorica[S,], nrow = 1)
-  Final.GORICA.weights <- CumulativeGoricaWeights[S,]
+  #Final.GORICA <- matrix(CumulativeBF[S,], nrow = 1)
+  Final.GORICA.weights <- CumulativePMPs[S,]
   Final.rel.GORICA.weights <- Final.GORICA.weights %*% t(1/Final.GORICA.weights)
   #Final.GORICA.weights <- matrix(Final.GORICA.weights, nrow = 1)
   #rownames(Final.GORICA) <- "Final"
@@ -513,32 +529,28 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
                 plot=FALSE, pch=Pch, lty=Lty, col=Col)
     # calculate right margin width in ndc
     w <- grconvertX(l$rect$w, to='ndc') - grconvertX(0, to='ndc')
-    if(w < 1){
-      par(omd=c(0, 1-w, 0, 1))
-    }else{
-      par(omd=c(0, 1, 0, 1)) # TO DO dan groter dan 1 maken, waarom w > 1??
-    }
+    par(omd=c(0, 1-w, 0, 1))
     #
     teller_col <- 1
-    #plot(1:S, weight_m[,1], pch = 16, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative")
+    #plot(1:S, PMP_m[,1], pch = 16, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative")
     if(all(is.numeric(Name_studies))){
       X <- Name_studies
-      plot(X, weight_m[,1], pch = 16, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative", xaxt="n")
+      plot(X, PMP_m[,1], pch = 16, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative", xaxt="n")
       axis(1, at=X, labels=Name_studies)
     }else{
       X <- 1:S
-      plot(X, weight_m[,1], pch = 16, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative", xaxt="n")
+      plot(X, PMP_m[,1], pch = 16, col = teller_col, xlab = "Studies", ylab = "GORIC(A) weights", ylim = c(0,1), main = "GORIC(A) weights \n per study and cumulative", xaxt="n")
       axis(1, at=X, labels=Name_studies)
     }
     for(i in 2:NrHypos_incl){
       teller_col <- teller_col + 1
-      points(X, weight_m[,i], pch = 16, col = teller_col)
+      points(X, PMP_m[,i], pch = 16, col = teller_col)
     }
     teller_col <- 0
     for(i in 1:NrHypos_incl){
       teller_col <- teller_col + 1
-      points(X, CumulativeGoricaWeights[1:S,i], pch = 8, col = teller_col)
-      lines(X, CumulativeGoricaWeights[1:S,i], lty = 1, lwd = 1, col = teller_col)
+      points(X, CumulativePMPs[1:S,i], pch = 8, col = teller_col)
+      lines(X, CumulativePMPs[1:S,i], lty = 1, lwd = 1, col = teller_col)
     }
     #
     legend(par('usr')[2], par('usr')[4], bty='n', xpd=NA,
@@ -548,30 +560,30 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
 
   # Output
   if(NrHypos == 1 & Safeguard == "complement"){
-    colnames(rel.weight_mu) <- c("H1 vs Hc1")
+    colnames(rel.PMP_mu) <- c("H1 vs Hc1")
     colnames(Final.rel.GORICA.weights) <- c("vs H1", "vs Hc1")
-    #final <- list(GORICA_m = GORICA_m, GORICA.weight_m = weight_m, rel.GORICA.weight_mc = rel.weight_mu, LL_m = LL, PT_m = PT,
-    #              EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
+    #final <- list(BF_m = BF_m, GORICA.PMP_m = PMP_m, rel.GORICA.PMP_mc = rel.PMP_mu, logFit_m = logFit, logCompl_m = logCompl,
+    #              EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeBF, Cumulative.GORICA.weights = CumulativePMPs,
     #              Final.GORICA = Final.GORICA, Final.GORICA.weights = Final.GORICA.weights, Final.rel.GORICA.weights = Final.rel.GORICA.weights)
-    final <- list(GORICA_m = GORICA_m, GORICA.weight_m = weight_m, rel.GORICA.weight_mc = rel.weight_mu, LL_m = LL, PT_m = PT,
-                  EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
+    final <- list(BF_m = BF_m, GORICA.PMP_m = PMP_m, rel.GORICA.PMP_mc = rel.PMP_mu, logFit_m = logFit, logCompl_m = logCompl,
+                  EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeBF, Cumulative.GORICA.weights = CumulativePMPs,
                   Final.rel.GORICA.weights = Final.rel.GORICA.weights)
   } else if(Safeguard == "none"){
     colnames(Final.rel.GORICA.weights) <- c(paste0("vs H", 1:NrHypos))
-    #final <- list(GORICA_m = GORICA_m, GORICA.weight_m = weight_m, LL_m = LL, PT_m = PT,
-    #              EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
+    #final <- list(BF_m = BF_m, GORICA.PMP_m = PMP_m, logFit_m = logFit, logCompl_m = logCompl,
+    #              EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeBF, Cumulative.GORICA.weights = CumulativePMPs,
     #              Final.GORICA = Final.GORICA, Final.GORICA.weights = Final.GORICA.weights, Final.rel.GORICA.weights = Final.rel.GORICA.weights)
-    final <- list(GORICA_m = GORICA_m, GORICA.weight_m = weight_m, LL_m = LL, PT_m = PT,
-                  EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
+    final <- list(BF_m = BF_m, GORICA.PMP_m = PMP_m, logFit_m = logFit, logCompl_m = logCompl,
+                  EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeBF, Cumulative.GORICA.weights = CumulativePMPs,
                   Final.rel.GORICA.weights = Final.rel.GORICA.weights)
   }else{ # unc
-    colnames(rel.weight_mu) <- c(paste0("H", 1:NrHypos, " vs Unc."), "Unc. vs Unc.")
+    colnames(rel.PMP_mu) <- c(paste0("H", 1:NrHypos, " vs Unc."), "Unc. vs Unc.")
     colnames(Final.rel.GORICA.weights) <- c(paste0("vs H", 1:NrHypos), "vs Hu")
-    #final <- list(GORICA_m = GORICA_m, GORICA.weight_m = weight_m, rel.GORICA.weight_mu = rel.weight_mu, LL_m = LL, PT_m = PT,
-    #              EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
+    #final <- list(BF_m = BF_m, GORICA.PMP_m = PMP_m, rel.GORICA.PMP_mu = rel.PMP_mu, logFit_m = logFit, logCompl_m = logCompl,
+    #              EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeBF, Cumulative.GORICA.weights = CumulativePMPs,
     #              Final.GORICA = Final.GORICA, Final.GORICA.weights = Final.GORICA.weights, Final.rel.GORICA.weights = Final.rel.GORICA.weights)
-    final <- list(GORICA_m = GORICA_m, GORICA.weight_m = weight_m, rel.GORICA.weight_mu = rel.weight_mu, LL_m = LL, PT_m = PT,
-                  EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeGorica, Cumulative.GORICA.weights = CumulativeGoricaWeights,
+    final <- list(BF_m = BF_m, GORICA.PMP_m = PMP_m, rel.GORICA.PMP_mu = rel.PMP_mu, logFit_m = logFit, logCompl_m = logCompl,
+                  EvSyn_approach = EvSyn_approach, Cumulative.GORICA = CumulativeBF, Cumulative.GORICA.weights = CumulativePMPs,
                   Final.rel.GORICA.weights = Final.rel.GORICA.weights)
   }
   return(final)

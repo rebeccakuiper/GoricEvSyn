@@ -4,9 +4,9 @@
 #'
 #' @docType data
 #'
-#' @usage data(myWeights)
+#' @usage data(myBFs)
 #'
 #' @examples
-#' data(myWeights)
+#' data(myBFs)
 #'
-"myWeights"
+"myBFs"

@@ -4,7 +4,9 @@
 \name{myLLs}
 \alias{myLLs}
 \title{An example of log likelihood (LL) values}
-\format{An object of class \code{matrix} with 4 rows and 3 columns.}
+\format{
+An object of class \code{matrix} with 4 rows and 3 columns.
+}
 \usage{
 data(myLLs)
 }

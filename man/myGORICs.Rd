@@ -4,7 +4,9 @@
 \name{myGORICs}
 \alias{myGORICs}
 \title{An example of IC values}
-\format{An object of class \code{matrix} with 4 rows and 3 columns.}
+\format{
+An object of class \code{matrix} with 4 rows and 3 columns.
+}
 \usage{
 data(myGORICs)
 }
