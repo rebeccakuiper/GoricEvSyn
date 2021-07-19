@@ -21,6 +21,15 @@
 #' @export
 #' @examples
 #'
+#' #### NOTE ####
+#' # GoricEvSyn uses the R package 'restriktor'; make sure that version 0.2-800 (or higher) is installed.
+#' # So, you should obtain the following:
+#' #library(restriktor)
+#' #>This is restriktor 0.2-800
+#' #>restriktor is BETA software! Please report any bugs.
+#' # Version 0.2-500 might seem to work, but renders wrong results if the complement is used.
+#'
+#'
 #' ### Example 1: 2 ANOVA studies (Monin and Holubar) ###
 #' ### We will use the estimates of the ANOVA models
 #'
@@ -400,9 +409,10 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
   #
   if(SameHypo==1){ # if same hypotheses for all studies
     for(HypoTeller in 1:NrHypos){
-      #assign(paste0("H", HypoTeller), Hypo_studies[HypoTeller])
+      #assign(paste0("H", HypoTeller), Hypo_studies[HypoTeller]) # error: object 'H1' not found
       #assign(paste0("H", HypoTeller), Hypo_studies[HypoTeller], envir = parent.env(environment())) # error: cannot add bindings to a locked environment
       eval(parse(text = paste0("H", HypoTeller, " <<- Hypo_studies[(HypoTeller)]")))
+      #eval(parse(text = paste0("H", HypoTeller, " <- Hypo_studies[(HypoTeller)]"))) # error: object 'H1' not found
     }
   }
   teller <- 0

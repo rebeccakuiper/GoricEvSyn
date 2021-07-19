@@ -52,6 +52,11 @@ Bayesian evidence synthesis (BayesianEvSyn) aggregates the evidence for theory-b
 \examples{
 # TO DO voeg in voorbeelden hieronder N (vector of length S) toe!
 
+
+#### Note ####
+#BayesianEvSyn uses the R package 'bain'; make sure that this is installed.
+
+
 ### Example 1: 2 ANOVA studies (Monin and Holubar) ###
 ### We will use the estimates of the ANOVA models
 

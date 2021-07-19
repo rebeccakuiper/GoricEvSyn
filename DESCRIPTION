@@ -8,8 +8,10 @@ Authors@R:
            email = "r.m.kuiper@uu.nl",
            comment = c(ORCID = "0000-0002-0267-5197"))
 Description: GORIC(A) evidence synthesis (GoricEvSyn) aggregates the evidence for theory-based hypotheses from multiple studies that may use diverse designs to investigate the same central theory.
-Depends: R (>= 3.5.1)
+Depends: R (>= 3.5.1),
+	restriktor,
+	bain
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.0.9000
+RoxygenNote: 7.1.1.9001

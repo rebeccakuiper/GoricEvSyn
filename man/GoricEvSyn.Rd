@@ -48,6 +48,15 @@ GORIC(A) evidence synthesis (GoricEvSyn) aggregates the evidence for theory-base
 }
 \examples{
 
+#### NOTE ####
+# GoricEvSyn uses the R package 'restriktor'; make sure that version 0.2-800 (or higher) is installed.
+# So, you should obtain the following:
+#library(restriktor)
+#>This is restriktor 0.2-800
+#>restriktor is BETA software! Please report any bugs.
+# Version 0.2-500 might seem to work, but renders wrong results if the complement is used.
+
+
 ### Example 1: 2 ANOVA studies (Monin and Holubar) ###
 ### We will use the estimates of the ANOVA models
 
