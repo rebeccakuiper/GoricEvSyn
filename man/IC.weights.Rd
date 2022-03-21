@@ -9,7 +9,7 @@ IC.weights(IC, Name_Hypo = NULL)
 \arguments{
 \item{IC}{A vector or one-column matrix with information criteria (AIC, ORIC, GORIC(A), BIC, SIC, ...) values of length 'NrHypos', where 'NrHypos' stands for the number of hypotheses/models.}
 
-\item{Name_Hypo}{Optional. Vector containing 'NrHypos' characters which will be used for labelling the hypothesis. Default: H1, H2, ....}
+\item{Name_Hypo}{Optional. Vector containing 'NrHypos' characters which will be used for labeling the hypothesis. Default: H1, H2, ....}
 }
 \value{
 IC weights, which quantify the relative strength of hypotheses/models.

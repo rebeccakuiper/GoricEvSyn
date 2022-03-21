@@ -450,14 +450,14 @@ GoricEvSyn <- function(TypeEv, S, Param_studies, CovMx_studies, SameHypo, NrHypo
       eval(parse(text = paste0("res_goric <- restriktor:::goric(est, VCOV = cov, ",
                               HypoSet,
                               ", type = 'gorica', comparison = Safeguard)")))
-      rel.weight_mu[s,] <- res_goric$relative.gw[1, NrHypos_incl]
+      rel.weight_mu[s,] <- res_goric$ratio.gw[1, NrHypos_incl]
     } else{ # vs none or unconstrained (default)
       eval(parse(text = paste0("res_goric <- restriktor:::goric(est, VCOV = cov, ",
                               HypoSet,
                               ", type = 'gorica', comparison = Safeguard)")))
       #res_goric <- restriktor:::goric(est, VCOV = cov, H1, H2, H3, type = "gorica", comparison = Safeguard)
       if(Safeguard == "unconstrained"){
-        rel.weight_mu[s,] <- res_goric$relative.gw[, NrHypos_incl]
+        rel.weight_mu[s,] <- res_goric$ratio.gw[, NrHypos_incl]
       }
     }
     LL[s,] <- res_goric$result[,2]

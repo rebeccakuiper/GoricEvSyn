@@ -4,7 +4,7 @@
 #' This function transforms IC values into IC weights: IC values denote the ordering of hypotheses/models, while IC weights quantify the relative strength of hypotheses/models.
 #'
 #' @param IC A vector or one-column matrix with information criteria (AIC, ORIC, GORIC(A), BIC, SIC, ...) values of length 'NrHypos', where 'NrHypos' stands for the number of hypotheses/models.
-#' @param Name_Hypo Optional. Vector containing 'NrHypos' characters which will be used for labelling the hypothesis. Default: H1, H2, ....
+#' @param Name_Hypo Optional. Vector containing 'NrHypos' characters which will be used for labeling the hypothesis. Default: H1, H2, ....
 #'
 #' @return IC weights, which quantify the relative strength of hypotheses/models.
 #' @export
