@@ -143,6 +143,9 @@ GoricEvSyn_LLandPT <- function(TypeEv, S, LL, PT, Name_studies = 1:S, Name_Hypo 
     EvSyn_approach <- "Added-evidence approach"
   }else{ # equal-ev approach
     for(s in 1:S){
+      minIC <- min(IC[s,])
+      weight_m[s,] <- exp(-0.5*(IC[s,]-minIC)) / sum(exp(-0.5*(IC[s,]-minIC)))
+
       sumLL <- sumLL + LL[s,]
       sumPT <- sumPT + PT[s,]
       CumulativeGorica[s,] <- -2 * sumLL + 2 * sumPT/s
