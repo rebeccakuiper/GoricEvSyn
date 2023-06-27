@@ -41,12 +41,12 @@ Weights <- myWeights # Example based on S = 4 studies and 3 hypotheses:
 # Hpos <- "beta1 > 0"
 # Hneg <- "beta1 < 0"
 # Note that in this set the whole space is (all theories are) covered so the unconstrained is not needed as safeguard-hypothesis
-GoricEvSyn_IC(S, Weights)
+GoricEvSyn_weights(S, Weights)
 
 # Change labels on x-axis in GORIC(A) weigths plot and give names to hypotheses #
 # For example, let us say that the studies come from the years 2015, 2016, 2017, 2019.
 # Because of unequal spacing, you may want to use numbers instead of characters:
 Name_studies <- c(2015, 2016, 2017, 2019)
 Name_Hypo <- c("H0", "Hpos", "Hneg")
-GoricEvSyn_IC(S, Weights, Name_studies, Name_Hypo)
+GoricEvSyn_weights(S, Weights, Name_studies, Name_Hypo)
 }
